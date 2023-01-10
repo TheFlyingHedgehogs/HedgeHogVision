@@ -3,6 +3,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 import pupil_apriltags
 import cv2
+from pprint import pprint
 
 @dataclass
 class Calibration:
@@ -31,6 +32,29 @@ class FoundTag:
     rotation: ArrayLike
 
 
+@dataclass
+class KnownTag:
+    x: float
+    y: float
+    z: float
+    rotation: float
+
+
+def t(x_in: float, y_in: float, z_in: float, rotation: float) -> KnownTag:
+    return KnownTag(x_in * 0.0254, y_in * 0.0254, z_in * 0.0254, rotation)
+
+field = {
+    1: t( 42.19, 610.77, 18.22, 180),
+    2: t(108.19, 610.77, 18.22, 180),
+    3: t(147.19, 610.77, 18.22, 180),
+    4: t(265.74, 636.96, 27.38, 180),
+    5: t(265.74,  14.25, 27.38, 0),
+    6: t(147.19,  40.45, 18.22, 0),
+    7: t(108.19,  40.45, 18.22, 0),
+    8: t( 42.19,  40.45, 18.22, 0)
+}
+
+
 class Detector:
     def __init__(self, calibration: Calibration, tag_width_m: float = 0.1524):
         self.calibration = calibration
@@ -47,7 +71,6 @@ class Detector:
     def find_tags(self, image: ArrayLike) -> list[FoundTag()]:
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         found = self.detector.detect(gray)
-        # print(found)
 
         detected = []
 
@@ -56,35 +79,39 @@ class Detector:
                 continue
             image_points = np.array(item.corners)
 
-            i = 1
-            for c in item.corners:
-                cv2.drawMarker(img, (int(c[0]), int(c[1])), color=(0,255 / i,0), markerType=cv2.MARKER_TILTED_CROSS, thickness=1)
-                i += 1
-
             ret, rvec, tvec = cv2.solvePnP(self.object_points, image_points, self.calibration.mtx, self.calibration.dist)
             if ret:
-                print(f"tag {item.tag_id}")
-                print("rvec")
-                print(rvec)
+                r_matrix = cv2.Rodrigues(rvec)[0]
 
+                tag_coords = np.matmul(r_matrix, tvec)
+
+                known_pos = field[item.tag_id]
+                # print(item.tag_id)
+                # print(field)
+                # print(field[item.tag_id])
+
+                """
+                  x
+                 ___
+                |   |
+                |   |  y
+                |___|
                 
+                vertical is z
+                """
 
-                print("tvec")
+
+                if known_pos == None:
+                    continue
+                print(tag_coords)
+                # print(known_pos)
                 print(tvec)
-                print()
+                world_coords = (known_pos.x + tag_coords[0][0], known_pos.y + tag_coords[2][0], known_pos.z + tag_coords[1][0])
+                # print(world_coords)
 
-                cv2.drawFrameAxes(img, self.calibration.mtx, self.calibration.dist, rvec, tvec, 0.1524)
-            # cv2.imshow("a", img)
-            # cv2.waitKey()
-            # cv2.waitKey()
-            # cv2.waitKey()
-            # cv2.waitKey()
-            # cv2.waitKey()
-            # cv2.waitKey()
-            # cv2.waitKey()
 
-# img = cv2.imread("/tmp/0250.png")
-img = cv2.imread("/home/foo/synced/2023-field/angles/45.png")
+img = cv2.imread("/tmp/0251.png")
+# img = cv2.imread("/home/foo/synced/2023-field/angles/moved.png")
 # img = cv2.imread("/tmp/Untitled.png")
 # img = cv2.imread("/home/foo/synced/2023-field/tags/tag16_05_00005.png")
 calibration = perfect_camera(50, 36, (1920, 1080))
