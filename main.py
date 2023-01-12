@@ -5,7 +5,7 @@ import pupil_apriltags
 import cv2
 import math
 import math_stuff as transform
-from math_stuff import Transform3d
+from math_stuff import Transform3d, Translation3d, Pose3d, Rotation3d
 
 _robotToCamera = Transform3d.zero()
 
@@ -55,11 +55,11 @@ class FoundTag:
         """Translation of the camera from the apriltag"""
         rotation3d: transform.Rotation3d = transform.Rotation3d.from_matrix(rotation)
         """Rotation matrix of the apriltag from the matrix"""
-        self.tag_transform: transform.Transform3d = transform.Transform3d(translation,rotation3d)
+        self.tag_transform: transform.Transform3d = transform.Transform3d(translation, rotation3d)
 
     def get_robot_location(self):
-        object_to_camera = self.tag_transform.translation.inverse()
-        camera_to_robot = _robotToCamera.inverse()
+        object_to_camera = self.tag_transform.inverse()
+        camera_to_robot = Transform3d(_robotToCamera.inverse(), Rotation3d.zero())
         return self.parent_tag.pose.transform_by(object_to_camera).transform_by(camera_to_robot)
 
 
@@ -108,7 +108,20 @@ class Detector:
             if success:
                 rotation_matrix = cv2.Rodrigues(rotation_vector)[0]
 
-                tag_coords = np.matmul(np.zeros(rotation_matrix.shape) - rotation_matrix, translation_vector)
+                # tag_coords = np.matmul(np.zeros(rotation_matrix.shape) - rotation_matrix, translation_vector)
+
+                transformation = Transform3d(
+                    Translation3d.from_matrix(translation_vector),
+                    Rotation3d.from_matrix(rotation_matrix)
+                )
+
+                object_to_camera = transformation.inverse()
+                camera_to_robot = _robotToCamera.inverse()
+                print(f"obj to camera {object_to_camera}")
+                print(f"camera to robot {camera_to_robot}")
+                p = Pose3d.zero().transform_by(object_to_camera).transform_by(camera_to_robot)
+                print(p)
+
 
                 known_pos = field[item.tag_id]
                 """
@@ -129,9 +142,9 @@ class Detector:
                 # print(math.sqrt(translation_vector[0][0] ** 2 + translation_vector[1][0] ** 2 + translation_vector[2][0] ** 2))
                 # print(rotation_matrix)
 
-                translation_inv = np.zeros(translation_vector.shape) - translation_vector
-                
-                world_coords = (known_pos.x + tag_coords[0][0], known_pos.y + tag_coords[2][0], known_pos.z + tag_coords[1][0])
+                # translation_inv = np.zeros(translation_vector.shape) - translation_vector
+                #
+                # world_coords = (known_pos.x + tag_coords[0][0], known_pos.y + tag_coords[2][0], known_pos.z + tag_coords[1][0])
                 # print(world_coords)
         return detected
 
