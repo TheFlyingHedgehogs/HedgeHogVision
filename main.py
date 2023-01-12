@@ -5,9 +5,10 @@ import pupil_apriltags
 import cv2
 import math
 import math_stuff as transform
-from pprint import pprint
+from math_stuff import Transform3d
 
-_robotToCamera = transform.zero()
+_robotToCamera = Transform3d.zero()
+
 
 @dataclass
 class Calibration:
@@ -30,21 +31,6 @@ def perfect_camera(focal_length_mm, horizontal_sensor_size_mm, resolution) -> Pi
 
     return PinholeCalibration(mtx, dist)
 
-class FoundTag:
-    def __init__(self, parent_tag: int, translation: ArrayLike, rotation: ArrayLike):
-        self.parent_tag: KnownTag = parent_tag
-        """The ID of the apriltag"""
-        translation: transform.Translation3d = transform.Translation3d.from_matrix(translation)
-        """Translation of the camera from the apriltag"""
-        rotation3d: transform.Rotation3d = transform.Rotation3d.from_matrix(rotation)
-        """Rotation matrix of the apriltag from the matrix"""
-        self.tag_transform: transform.Transform3d = transform.Transform3d(translation,rotation3d)
-    def get_robot_location(self):
-        object_to_camera = self.translation.inverse();
-        camera_to_robot = _robotToCamera.inverse();
-        return self.parent_tag.pose.transform_by(object_to_camera).transform_by(camera_to_robot)
-
-
 
 @dataclass
 class KnownTag:
@@ -61,19 +47,35 @@ class KnownTag:
         self.translation = transform.Translation3d(self.x, self.y, self.z)
 
 
+class FoundTag:
+    def __init__(self, parent_tag: KnownTag, translation: ArrayLike, rotation: ArrayLike):
+        self.parent_tag: KnownTag = parent_tag
+        """The ID of the apriltag"""
+        translation: transform.Translation3d = transform.Translation3d.from_matrix(translation)
+        """Translation of the camera from the apriltag"""
+        rotation3d: transform.Rotation3d = transform.Rotation3d.from_matrix(rotation)
+        """Rotation matrix of the apriltag from the matrix"""
+        self.tag_transform: transform.Transform3d = transform.Transform3d(translation,rotation3d)
+
+    def get_robot_location(self):
+        object_to_camera = self.tag_transform.translation.inverse()
+        camera_to_robot = _robotToCamera.inverse()
+        return self.parent_tag.pose.transform_by(object_to_camera).transform_by(camera_to_robot)
+
+
 """def t(x_in: float, y_in: float, z_in: float, rotation: float) -> KnownTag:
     return KnownTag(x_in * 0.0254, y_in * 0.0254, z_in * 0.0254, rotation)
 """
 field = (
-    None,                                   #0
-    KnownTag(42.19, 610.77, 18.22, 180),    #1
-    KnownTag(108.19, 610.77, 18.22, 180),   #2
-    KnownTag(147.19, 610.77, 18.22, 180),   #3
-    KnownTag(265.74, 636.96, 27.38, 180),   #4
-    KnownTag(265.74,  14.25, 27.38, 0),     #5
-    KnownTag(147.19,  40.45, 18.22, 0),     #6
-    KnownTag(108.19,  40.45, 18.22, 0),     #7
-    KnownTag(42.19,  40.45, 18.22, 0)       #8
+    None,                                   # 0
+    KnownTag(42.19, 610.77, 18.22, 180),    # 1
+    KnownTag(108.19, 610.77, 18.22, 180),   # 2
+    KnownTag(147.19, 610.77, 18.22, 180),   # 3
+    KnownTag(265.74, 636.96, 27.38, 180),   # 4
+    KnownTag(265.74,  14.25, 27.38, 0),     # 5
+    KnownTag(147.19,  40.45, 18.22, 0),     # 6
+    KnownTag(108.19,  40.45, 18.22, 0),     # 7
+    KnownTag(42.19,  40.45, 18.22, 0)       # 8
 )
 
 
