@@ -44,7 +44,10 @@ class KnownTag:
         """Z position of the tag relative to a corner of the field in meters"""
         self.rotation: float = math.radians(rotation_degrees)
         """Rotation of the tag relative to the center of the field in radians."""
-        self.translation = transform.Translation3d(self.x, self.y, self.z)
+        self.pose = transform.Pose3d(
+            transform.Translation3d(self.x, self.y, self.z),
+            transform.Rotation3d.zero()
+                                     )
 
 
 class FoundTag:
@@ -55,7 +58,7 @@ class FoundTag:
         """Translation of the camera from the apriltag"""
         rotation3d: transform.Rotation3d = transform.Rotation3d.from_matrix(rotation)
         """Rotation matrix of the apriltag from the matrix"""
-        self.tag_transform: transform.Transform3d = transform.Transform3d(translation,rotation3d)
+        self.tag_transform: transform.Transform3d = transform.Transform3d(translation, rotation3d)
 
     def get_robot_location(self):
         object_to_camera = self.tag_transform.translation.inverse()
@@ -122,7 +125,10 @@ class Detector:
                 """
                 if known_pos == None:  # TODO replace with index check, this won't catch it
                     continue
-                detected.append(FoundTag(known_pos, translation_vector, rotation_matrix))
+
+                found_tag = FoundTag(known_pos, translation_vector, rotation_matrix)
+                detected.append(found_tag)
+                print(found_tag.get_robot_location())
                 # print(tag_coords)
                 # print(known_pos)
                 # print(translation_vector)
