@@ -29,9 +29,6 @@ class Rotation3d:
         return Rotation3d(self.q.conjugate())
 
 
-class Transform3d: pass
-
-
 @dataclass
 class Transform3d:
     translation: Translation3d
