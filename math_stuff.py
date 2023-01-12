@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from quaternions.quaternions import Quaternion
+from pyquaternion import Quaternion
 
 
 @dataclass
@@ -8,6 +8,7 @@ class Rotation3d:
 
     def unary_minus(self):
         return Rotation3d(self.q.conjugate())
+
 
 @dataclass
 class Translation3d:
@@ -22,8 +23,6 @@ class Translation3d:
         p = Quaternion(0.0, self.x, self.y, self.z)
         qprime = other.q * p * other.q.conjugate()
         return Translation3d(qprime.real, qprime.i, qprime.j)
-
-
 
 
 @dataclass
