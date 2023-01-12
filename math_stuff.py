@@ -5,6 +5,7 @@ from numpy.typing import ArrayLike
 
 @dataclass
 class Rotation3d:
+    """Describes the rotation of an object in 3D space"""
     q: Quaternion
 
     def unary_minus(self):
@@ -16,6 +17,8 @@ class Rotation3d:
 
     def __add__(self, other):
         return Rotation3d(self.q * other.q)
+    def __truediv__(self,other):
+        if(type(other) == int): return Rotation3d(self.q / other)
 
     @staticmethod
     def zero():
@@ -24,15 +27,16 @@ class Rotation3d:
 
 @dataclass
 class Translation3d:
+    """Describes the position of an object in 3D space"""
     x: float
     y: float
     z: float
     @staticmethod
-    def from_matrix(Matrix: ArrayLike):
-        x = Matrix[0][0]
-        y = Matrix[1][0]
-        z = Matrix[2][0]
-        return Translation3d(x,y,z)
+    def from_matrix(matrix: ArrayLike):
+        x = matrix[0][0]
+        y = matrix[1][0]
+        z = matrix[2][0]
+        return Translation3d(x, y, z)
     def unary_minus(self):
         return Translation3d(-self.x, -self.y, -self.z)
 
@@ -43,6 +47,8 @@ class Translation3d:
 
     def __add__(self, other):
         return Translation3d(self.x + other.x, self.y + other.y, self.z + other.z)
+    def __truediv__(self,other):
+        if(type(other) == int): return Translation3d(self.x + other, self.y + other, self.z + other)
 
     @staticmethod
     def zero():
@@ -51,9 +57,15 @@ class Translation3d:
 
 @dataclass
 class Transform3d:
+    """Describes the transform of and object in 3D space"""
     translation: Translation3d
+    """Translation of the transform"""
     rotation: Rotation3d
-
+    """Rotation of the transform"""
+    def __add__(self, other):
+        return Transform3d(self.translation+other.translation,self.rotation + other.rotation)
+    def __truediv__(self, other):
+        if(type(other) == int): return Transform3d(self.translation/other, self.rotation/other)
     def inverse(self):
         return Transform3d(
             self.translation.unary_minus().rotate_by(self.rotation.unary_minus()),
@@ -63,6 +75,15 @@ class Transform3d:
     @staticmethod
     def zero():
         return Transform3d(Translation3d.zero(), Rotation3d.zero())
+    @staticmethod
+    def average(arg):
+        returnTransform = Transform3d.zero()
+        for i in arg:
+            returnTransform += i;
+        returnTransform = returnTransform / len(arg)
+        return returnTransform;
+
+
 
 
 @dataclass
