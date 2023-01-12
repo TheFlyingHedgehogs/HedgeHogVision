@@ -1,11 +1,10 @@
-import pupil_apriltags
-import numpy as np
-from numpy.typing import ArrayLike
-from dataclasses import dataclass
 import cv2
+import numpy as np
+import pupil_apriltags
+from numpy.typing import ArrayLike
 from Calibration import Calibration
-from math_stuff import Transform3d, Translation3d, Pose3d, Rotation3d
-from Tags import FoundTag, KnownTag, field
+from Tags import FoundTag, field
+
 
 class Detector:
     def __init__(self, calibration: Calibration, tag_width_m: float = 0.1524):
@@ -45,7 +44,7 @@ class Detector:
                 
                 vertical is z
                 """
-                if known_pos == None:  # TODO replace with index check, this won't catch it
+                if known_pos is None:  # TODO replace with index check, this won't catch it
                     continue
 
                 found_tag = FoundTag(known_pos, translation_vector, rotation_matrix)

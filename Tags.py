@@ -1,17 +1,19 @@
 from dataclasses import dataclass
 from math_stuff import Transform3d, Translation3d, Pose3d, Rotation3d
 from pyquaternion import Quaternion
-import numpy as np
 from numpy.typing import ArrayLike
 import math
 from constants import _robotToCamera
 
+
 @dataclass
 class KnownTag:
     """Contains the position and rotation of the tag on the field"""
+
     @staticmethod
     def from_inches(x_inches: float, z_inches: float, y_inches: float, rotation_degrees: float):
-        return KnownTag(x_inches * 0.0254, y_inches * 0.0254, z_inches * 0.0254,rotation_degrees)
+        return KnownTag(x_inches * 0.0254, y_inches * 0.0254, z_inches * 0.0254, rotation_degrees)
+
     def __init__(self, x: float, y: float, z: float, rotation_degrees: float):
         self.x: float = x
         """X position of the tag relative to a corner of the field in meters"""
@@ -22,9 +24,9 @@ class KnownTag:
         self.rotation: float = math.radians(rotation_degrees)
         """Rotation of the tag relative to the center of the field in radians."""
         self.pose = Pose3d(
-            Translation3d(x,y,z),
-            #Rotation3d.zero()
-            #Translation3d.zero(),
+            Translation3d(x, y, z),
+            # Rotation3d.zero()
+            # Translation3d.zero(),
             Rotation3d(Quaternion(axis=[1.0, 0.0, 0.0], radians=self.rotation))
         )
 
@@ -44,6 +46,7 @@ class FoundTag:
         camera_to_robot = _robotToCamera.inverse()
         return self.parent_tag.pose.transform_by(object_to_camera).transform_by(camera_to_robot)
 
+
 """field = (
     None,                                   # 0
     KnownTag.from_inches(42.19, 610.77, 18.22, 180),    # 1
@@ -60,4 +63,3 @@ field = (
     KnownTag(-1.2318, 0, 12, 180),
     KnownTag(1.65, 0, 12, 180)
 )
-
