@@ -2,7 +2,9 @@ from dataclasses import dataclass
 from quaternions.quaternions import Quaternion
 
 
-class Translation3d(): pass;
+class Translation3d:
+    pass
+
 
 @dataclass
 class Translation3d:
@@ -10,8 +12,8 @@ class Translation3d:
     y: float
     z: float
 
-    def unaryMinus(self) -> Translation3d:
-        return Translation3d(-self.x,-self.y, -self.z)
+    def unary_minus(self) -> Translation3d:
+        return Translation3d(-self.x, -self.y, -self.z)
 
     def rotate_by(self, r):
         p = Quaternion(0.0, self.x, self.y, self.z)
@@ -24,7 +26,7 @@ class Rotation3d:
     q: Quaternion
 
     def unary_minus(self):
-        Rotation3d(self.q.conjugate())
+        return Rotation3d(self.q.conjugate())
 
 
 class Transform3d: pass
@@ -37,6 +39,6 @@ class Transform3d:
 
     def inverse(self) -> Transform3d:
         return Transform3d(
-            self.translation.rotateBy(self.rotation.unaryMinus()),
-            self.rotation.unaryMinus
+            self.translation.rotate_by(self.rotation.unary_minus()),
+            self.rotation.unary_minus()
         )
