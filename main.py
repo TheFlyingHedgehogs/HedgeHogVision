@@ -7,6 +7,8 @@ import math
 import math_stuff as transform
 from pprint import pprint
 
+_robotToCamera = transform.zero()
+
 @dataclass
 class Calibration:
     mtx: ArrayLike
@@ -30,13 +32,17 @@ def perfect_camera(focal_length_mm, horizontal_sensor_size_mm, resolution) -> Pi
 
 class FoundTag:
     def __init__(self, parent_tag: int, translation: ArrayLike, rotation: ArrayLike):
-        parent_tag: KnownTag = parent_tag
+        self.parent_tag: KnownTag = parent_tag
         """The ID of the apriltag"""
-        translation: ArrayLike = translation
+        translation: transform.Translation3d = transform.Translation3d.from_matrix(translation)
         """Translation of the camera from the apriltag"""
-        rotation: ArrayLike = rotation
+        rotation3d: transform.Rotation3d = transform.Rotation3d.from_matrix(rotation)
         """Rotation matrix of the apriltag from the matrix"""
-    def getRobotLocation(self):
+        self.tag_transform: transform.Transform3d = transform.Transform3d(translation,rotation3d)
+    def get_robot_location(self):
+        object_to_camera = self.translation.inverse();
+        camera_to_robot = _robotToCamera.inverse();
+        return self.parent_tag.pose.transform_by(object_to_camera).transform_by(camera_to_robot)
 
 
 

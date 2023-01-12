@@ -21,7 +21,11 @@ class Translation3d:
     y: float
     z: float
     @staticmethod
-    def matrix_to_translation(): pass
+    def from_matrix(Matrix: ArrayLike):
+        x = Matrix[0]
+        y = Matrix[1]
+        z = Matrix[2]
+        return Translation3d(x,y,z)
     def unary_minus(self):
         return Translation3d(-self.x, -self.y, -self.z)
 
