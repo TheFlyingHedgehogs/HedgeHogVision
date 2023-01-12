@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pyquaternion import Quaternion
+from numpy.typing import ArrayLike
 
 
 @dataclass
@@ -8,6 +9,10 @@ class Rotation3d:
 
     def unary_minus(self):
         return Rotation3d(self.q.conjugate())
+
+    @staticmethod
+    def from_matrix(matrix: ArrayLike):
+        return Rotation3d(Quaternion(matrix=matrix))
 
 
 @dataclass
