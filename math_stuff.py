@@ -13,10 +13,18 @@ class Translation3d:
     def unaryMinus(self) -> Translation3d:
         return Translation3d(-self.x,-self.y, -self.z)
 
+    def rotate_by(self, r):
+        p = Quaternion(0.0, self.x, self.y, self.z)
+        qprime = r.q * p * r.q.conjugate()
+        return Translation3d(qprime.real, qprime.i, qprime.j)
+
 
 @dataclass
 class Rotation3d:
     q: Quaternion
+
+    def unary_minus(self):
+        Rotation3d(self.q.conjugate())
 
 
 class Transform3d: pass
