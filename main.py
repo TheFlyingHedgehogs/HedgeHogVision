@@ -4,6 +4,7 @@ from numpy.typing import ArrayLike
 import pupil_apriltags
 import cv2
 import math
+import math_stuff as transform
 from pprint import pprint
 
 @dataclass
@@ -35,6 +36,8 @@ class FoundTag:
         """Translation of the camera from the apriltag"""
         rotation: ArrayLike = rotation
         """Rotation matrix of the apriltag from the matrix"""
+    def getRobotLocation(self):
+
 
 
 @dataclass
@@ -49,6 +52,7 @@ class KnownTag:
         """Z position of the tag relative to a corner of the field in meters"""
         self.rotation: float = math.radians(rotation_degrees)
         """Rotation of the tag relative to the center of the field in radians."""
+        self.translation = transform.Translation3d(self.x, self.y, self.z)
 
 
 """def t(x_in: float, y_in: float, z_in: float, rotation: float) -> KnownTag:

@@ -20,7 +20,8 @@ class Translation3d:
     x: float
     y: float
     z: float
-
+    @staticmethod
+    def matrix_to_translation(): pass
     def unary_minus(self):
         return Translation3d(-self.x, -self.y, -self.z)
 
