@@ -29,9 +29,9 @@ class Translation3d:
     z: float
     @staticmethod
     def from_matrix(Matrix: ArrayLike):
-        x = Matrix[0]
-        y = Matrix[1]
-        z = Matrix[2]
+        x = Matrix[0][0]
+        y = Matrix[1][0]
+        z = Matrix[2][0]
         return Translation3d(x,y,z)
     def unary_minus(self):
         return Translation3d(-self.x, -self.y, -self.z)
@@ -39,7 +39,7 @@ class Translation3d:
     def rotate_by(self, other: Rotation3d):
         p = Quaternion(0.0, self.x, self.y, self.z)
         qprime = other.q * p * other.q.conjugate
-        return Translation3d(qprime.real, qprime.x, qprime.y)
+        return Translation3d(qprime.x, qprime.y, qprime.z)
 
     def __add__(self, other):
         return Translation3d(self.x + other.x, self.y + other.y, self.z + other.z)
@@ -50,31 +50,31 @@ class Translation3d:
 
 
 @dataclass
-class Pose3d:
-    translation: Translation3d
-    rotation: Rotation3d
-
-    def transform_by(self, transformation):
-        new_translation = self.translation + transformation.translation.rotate_by(self.rotation)
-        new_rotation = transformation.rotation + self.rotation
-        return Pose3d(new_translation, new_rotation)
-
-    @staticmethod
-    def zero():
-        return Pose3d(Translation3d.zero(), Rotation3d.zero())
-
-
-@dataclass
 class Transform3d:
     translation: Translation3d
     rotation: Rotation3d
 
     def inverse(self):
         return Transform3d(
-            self.translation.rotate_by(self.rotation.unary_minus()),
+            self.translation.unary_minus().rotate_by(self.rotation.unary_minus()),
             self.rotation.unary_minus()
         )
 
     @staticmethod
     def zero():
         return Transform3d(Translation3d.zero(), Rotation3d.zero())
+
+
+@dataclass
+class Pose3d:
+    translation: Translation3d
+    rotation: Rotation3d
+
+    def transform_by(self, transformation: Transform3d):
+        new_translation = self.translation + transformation.translation.rotate_by(self.rotation)
+        new_rotation = Rotation3d(self.rotation.q * transformation.rotation.q)
+        return Pose3d(new_translation, new_rotation)
+
+    @staticmethod
+    def zero():
+        return Pose3d(Translation3d.zero(), Rotation3d.zero())
