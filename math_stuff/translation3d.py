@@ -1,0 +1,36 @@
+from dataclasses import dataclass
+from pyquaternion import Quaternion
+from numpy.typing import ArrayLike
+from math_stuff.rotation3d import Rotation3d
+@dataclass
+class Translation3d:
+    """Describes the position of an object in 3D space"""
+    x: float
+    y: float
+    z: float
+
+    @staticmethod
+    def from_matrix(matrix: ArrayLike):
+        x = matrix[0][0]
+        y = matrix[1][0]
+        z = matrix[2][0]
+        return Translation3d(x, y, z)
+
+    def unary_minus(self):
+        return Translation3d(-self.x, -self.y, -self.z)
+
+    def rotate_by(self, other: Rotation3d):
+        p = Quaternion(0.0, self.x, self.y, self.z)
+        qprime = other.q * p * other.q.conjugate
+        return Translation3d(qprime.x, qprime.y, qprime.z)
+
+    def __add__(self, other):
+        return Translation3d(self.x + other.x, self.y + other.y, self.z + other.z)
+
+    def __truediv__(self, other):
+        if type(other) is int:
+            return Translation3d(self.x / other, self.y / other, self.z / other)
+
+    @staticmethod
+    def zero():
+        return Translation3d(0.0, 0.0, 0.0)

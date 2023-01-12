@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from math_stuff import Transform3d, Translation3d, Pose3d, Rotation3d
+from math_stuff.math_stuff import Transform3d, Translation3d, Pose3d, Rotation3d
 from pyquaternion import Quaternion
 from numpy.typing import ArrayLike
 import math
