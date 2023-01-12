@@ -8,7 +8,7 @@ class Rotation3d:
     q: Quaternion
 
     def unary_minus(self):
-        return Rotation3d(self.q.conjugate())
+        return Rotation3d(self.q.conjugate)
 
     @staticmethod
     def from_matrix(matrix: ArrayLike):
@@ -19,7 +19,7 @@ class Rotation3d:
 
     @staticmethod
     def zero():
-        return Rotation3d(Quaternion(radians=[0.0, 0.0, 0.0]))
+        return Rotation3d(Quaternion(axis=[1.0, 0.0, 0.0], radians=0.0))
 
 
 @dataclass
@@ -38,8 +38,8 @@ class Translation3d:
 
     def rotate_by(self, other: Rotation3d):
         p = Quaternion(0.0, self.x, self.y, self.z)
-        qprime = other.q * p * other.q.conjugate()
-        return Translation3d(qprime.real, qprime.i, qprime.j)
+        qprime = other.q * p * other.q.conjugate
+        return Translation3d(qprime.real, qprime.x, qprime.y)
 
     def __add__(self, other):
         return Translation3d(self.x + other.x, self.y + other.y, self.z + other.z)
