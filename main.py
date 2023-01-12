@@ -80,7 +80,7 @@ class Detector:
             [-tag_half, tag_half, 0.0]
         ], dtype=np.float64)
     
-    def find_tags(self, image: ArrayLike) -> list[FoundTag()]:
+    def find_tags(self, image: ArrayLike) -> list[FoundTag]:
         """Returns a list of all found tags in the frame"""
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         found = self.detector.detect(gray)
@@ -96,7 +96,7 @@ class Detector:
             if success:
                 rotation_matrix = cv2.Rodrigues(rotation_vector)[0]
 
-                tag_coords = np.matmul(rotation_matrix, translation_vector)
+                tag_coords = np.matmul(np.zeros(rotation_matrix.shape) - rotation_matrix, translation_vector)
 
                 known_pos = field[item.tag_id]
                 """
@@ -108,18 +108,23 @@ class Detector:
                 
                 vertical is z
                 """
-                if known_pos == None:
+                if known_pos == None:  # TODO replace with index check, this won't catch it
                     continue
                 detected.append(FoundTag(known_pos, translation_vector, rotation_matrix))
-                print(tag_coords)
+                # print(tag_coords)
                 # print(known_pos)
-                print(translation_vector)
+                # print(translation_vector)
+                # print(math.sqrt(translation_vector[0][0] ** 2 + translation_vector[1][0] ** 2 + translation_vector[2][0] ** 2))
+                # print(rotation_matrix)
+
+                translation_inv = np.zeros(translation_vector.shape) - translation_vector
+                
                 world_coords = (known_pos.x + tag_coords[0][0], known_pos.y + tag_coords[2][0], known_pos.z + tag_coords[1][0])
                 # print(world_coords)
         return detected
 
-img = cv2.imread("/tmp/0251.png")
-# img = cv2.imread("/home/foo/synced/2023-field/angles/moved.png")
+# img = cv2.imread("/tmp/0251.png")
+img = cv2.imread("/home/foo/synced/2023-field/angles/moved4.png")
 # img = cv2.imread("/tmp/Untitled.png")
 # img = cv2.imread("/home/foo/synced/2023-field/tags/tag16_05_00005.png")
 calibration = perfect_camera(50, 36, (1920, 1080))
