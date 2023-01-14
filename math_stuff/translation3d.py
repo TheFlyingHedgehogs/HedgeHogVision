@@ -6,20 +6,29 @@ from math_stuff.rotation3d import Rotation3d
 class Translation3d:
     """Describes the position of an object in 3D space"""
     x: float
+    """x distance from 0, 0, 0"""
     y: float
+    """y distance from 0, 0, 0"""
     z: float
-
+    """z distance from 0, 0, 0"""
     @staticmethod
     def from_matrix(matrix: ArrayLike):
+        """:return: Translation3d from a given numpy matrix
+        :rtype: Translation3d"""
         x = matrix[0][0]
         y = matrix[1][0]
         z = matrix[2][0]
         return Translation3d(x, y, z)
-
     def unary_minus(self):
+        """:return: Translation3d with all values flipped
+        :rtype: Translation3d"""
         return Translation3d(-self.x, -self.y, -self.z)
 
     def rotate_by(self, other: Rotation3d):
+        """
+        :param other: the Rotation3d to rotate the translation by
+        :return: Translation3d rotated by other
+        :rtype: Translation3d"""
         p = Quaternion(0.0, self.x, self.y, self.z)
         qprime = other.q * p * other.q.conjugate
         return Translation3d(qprime.x, qprime.y, qprime.z)
@@ -33,4 +42,7 @@ class Translation3d:
 
     @staticmethod
     def zero():
+        """Empty Translation3d instance
+        :return: A Translation3d with zeros as all values
+        :rtype: Translation3d"""
         return Translation3d(0.0, 0.0, 0.0)

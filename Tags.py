@@ -47,7 +47,7 @@ class FoundTag:
         return self.parent_tag.pose.transform_by(object_to_camera).transform_by(camera_to_robot)
 
 
-"""field = (
+field = (
     None,                                   # 0
     KnownTag.from_inches(42.19, 610.77, 18.22, 180),    # 1
     KnownTag.from_inches(108.19, 610.77, 18.22, 180),   # 2
@@ -57,9 +57,9 @@ class FoundTag:
     KnownTag.from_inches(147.19,  40.45, 18.22, 0),     # 6
     KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7
     KnownTag.from_inches(42.19,  40.45, 18.22, 0)       # 8
-)"""
-field = (
+)
+"""field = (
     None,
     KnownTag(-1.2318, 0, 12, 180),
     KnownTag(1.65, 0, 12, 180)
-)
+)"""

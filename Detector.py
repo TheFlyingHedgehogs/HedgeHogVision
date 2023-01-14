@@ -4,9 +4,10 @@ import pupil_apriltags
 from numpy.typing import ArrayLike
 from Calibration import Calibration
 from Tags import FoundTag, field
-
+from math_stuff.math_stuff import Transform3d
 
 class Detector:
+    """Used to find Apriltags in an image and return a position on the field"""
     def __init__(self, calibration: Calibration, tag_width_m: float = 0.1524):
         self.calibration = calibration
         self.detector = pupil_apriltags.Detector(families="tag16h5")  # TODO test thread count
@@ -50,3 +51,12 @@ class Detector:
                 found_tag = FoundTag(known_pos, translation_vector, rotation_matrix)
                 detected.append(found_tag)
         return detected
+
+    def get_world_pos_from_image(self, img):
+        tags = self.find_tags(img)
+        transforms = []
+        for i in tags:
+            robo_location = i.get_robot_location()
+            transforms.append(robo_location)
+        position = Transform3d.average(transforms)
+        return position

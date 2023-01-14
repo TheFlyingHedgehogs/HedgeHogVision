@@ -8,10 +8,14 @@ class Rotation3d:
     q: Quaternion
 
     def unary_minus(self):
+        """:return: Rotation3d with all Quaternions values flipped
+        :rtype: Rotation3d"""
         return Rotation3d(self.q.conjugate)
 
     @staticmethod
     def from_matrix(matrix: ArrayLike):
+        """:return: Rotation3d from a rotation matrix
+        :rtype: Rotation3d"""
         return Rotation3d(Quaternion(matrix=matrix))
 
     def __add__(self, other):
@@ -23,4 +27,7 @@ class Rotation3d:
 
     @staticmethod
     def zero():
+        """Empty Pose3d instance
+        :return: Rotation3d with all values as zero.
+        :rtype: Rotation3d"""
         return Rotation3d(Quaternion(axis=[1.0, 0.0, 0.0], radians=0.0))
