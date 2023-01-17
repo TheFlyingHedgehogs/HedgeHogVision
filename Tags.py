@@ -48,7 +48,7 @@ class FoundTag:
 
 
 field = (
-    None,                                   # 0
+    KnownTag.from_inches(0.0, 0.0, 0.0, 180),           # 0
     KnownTag.from_inches(42.19, 610.77, 18.22, 180),    # 1
     KnownTag.from_inches(108.19, 610.77, 18.22, 180),   # 2
     KnownTag.from_inches(147.19, 610.77, 18.22, 180),   # 3

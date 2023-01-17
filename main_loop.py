@@ -15,7 +15,8 @@ def debug(tag_finder: Detector) -> None:
     frames = 0
 
     while True:
-        location = tag_finder.get_world_pos_from_image(getImage())
+        img = getImage()
+        location = tag_finder.get_world_pos_from_image(img)
         print(f"Transform: {location}")
         location.to_smart_dashboard()
         frames += 1

@@ -25,13 +25,13 @@ class FisheyeCalibration(Calibration):
 #         found = math.sqrt(gotten[0]**2 + gotten[1]**2 + gotten[2]**2)
 #         print(f"{dst},{found}")
 
-#mtx, dist = pkl.load(open("calib-all-picam", "rb"))
-focal_length = (1920 / 36) * 100
+# mtx, dist = pkl.load(open("calib-picam-0", "rb"))
+# focal_length = (1920 / 36) * 100
 
-mtx = np.array([[focal_length,          0.0, 960],
-                [0.0,          focal_length, 540],
-                [0.0,                   0.0, 1.0]])
-dist = np.array([[0.0, 0.0, 0.0, 0.0, 0.0]])
+# mtx = np.array([[focal_length,          0.0, 960],
+#                 [0.0,          focal_length, 540],
+#                 [0.0,                   0.0, 1.0]])
+# dist = np.array([[0.0, 0.0, 0.0, 0.0, 0.0]])
 
 picam2 = Picamera2()
 video_config = picam2.create_video_configuration({"size": (1296, 972)})
@@ -47,5 +47,5 @@ frames = 0
 
 
 def getImage():
-    img = picam2.capture_array("main")
+    return picam2.capture_array("main")
 
