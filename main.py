@@ -10,10 +10,10 @@ import pickle as pkl
 mtx, dist = pkl.load(open("calib-picam-0", "rb"))
 calibration = PinholeCalibration(mtx, dist)
 
-detector = Detector(calibration)
+tag_finder = Detector(calibration)
 # detector = Detector()
 # tags = detector.find_tags(img)
 # start(detector)
 
-debug(Detector)
+debug(tag_finder)
 #print(detector.get_world_pos_from_image(img))
