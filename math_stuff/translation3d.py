@@ -39,6 +39,8 @@ class Translation3d:
     def __truediv__(self, other):
         if type(other) is int:
             return Translation3d(self.x / other, self.y / other, self.z / other)
+    def __str__(self):
+        return f"Translation: (x: {self.x},y: {self.y}, z: {self.z})"
 
     @staticmethod
     def zero():
@@ -46,3 +48,5 @@ class Translation3d:
         :return: A Translation3d with zeros as all values
         :rtype: Translation3d"""
         return Translation3d(0.0, 0.0, 0.0)
+    def is_zero(self) -> bool:
+        return self.x == 0 and self.y ==0 and self.z == 0

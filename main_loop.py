@@ -17,12 +17,13 @@ def debug(tag_finder: Detector) -> None:
     while True:
         img = getImage()
         location = tag_finder.get_world_pos_from_image(img)
-        print(f"Transform: {location}")
+        print(location)
         location.to_smart_dashboard()
-        frames += 1
+        """frames += 1
         if frames >= 100:
             now = time.perf_counter()
             print(f"avg fps: {frames / (now - start)}")
             start = now
             frames = 0
+        """
         print("---+===-{ New Frame }-===+---")

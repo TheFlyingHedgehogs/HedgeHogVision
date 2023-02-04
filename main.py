@@ -4,6 +4,8 @@ from Calibration import PinholeCalibration
 from Detector import Detector
 from main_loop import start, debug
 import pickle as pkl
+from CollectData import collectSD
+from CollectData import collectFakeSD
 
 # img = cv2.imread("C:\\Users\\ozypf\\Downloads\\tags\\field3.png")
 # calibration = perfect_camera(50, 36, (1920, 1080))
@@ -15,5 +17,5 @@ tag_finder = Detector(calibration)
 # tags = detector.find_tags(img)
 # start(detector)
 
-debug(tag_finder)
+collectFakeSD(tag_finder)
 #print(detector.get_world_pos_from_image(img))

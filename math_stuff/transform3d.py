@@ -42,7 +42,8 @@ class Transform3d:
         :return: a Transform3d with zeros as all values
         :rtype: Transform3d"""
         return Transform3d(Translation3d.zero(), Rotation3d.zero())
-
+    def __str__(self):
+        return f"Transform:\n\t{self.translation},\n\t{self.rotation}"
     @staticmethod
     def average(transforms):
         """:param transforms: The list transforms to be averaged

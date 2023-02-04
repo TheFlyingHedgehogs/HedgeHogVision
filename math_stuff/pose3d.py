@@ -19,6 +19,9 @@ class Pose3d:
         new_rotation = Rotation3d(self.rotation.q * transformation.rotation.q)
         return Pose3d(new_translation, new_rotation)
 
+    def __repr__(self):
+        return f"Pose:\n\t{self.translation},\n\t{self.rotation}"
+
     @staticmethod
     def zero():
         """Empty Pose3d instance

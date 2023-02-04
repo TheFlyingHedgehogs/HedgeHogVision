@@ -22,6 +22,10 @@ class KnownTag:
         self.z: float = z
         """Z position of the tag relative to a corner of the field in meters"""
         self.rotation: float = math.radians(rotation_degrees)
+        self.flipped = None
+        """If the tag is facing toward 0,0"""
+        if rotation_degrees == 0: self.flipped = False
+        else: self.flipped = True
         """Rotation of the tag relative to the center of the field in radians."""
         self.pose = Pose3d(
             Translation3d(x, y, z),
@@ -42,12 +46,16 @@ class FoundTag:
         self.tag_transform: Transform3d = Transform3d(translation, rotation3d)
 
     def get_robot_location(self):
+        """
+
+        :return: Robots real world position
+        :rtype: Pose3d
+        """
         object_to_camera = self.tag_transform.inverse()
         camera_to_robot = _robotToCamera.inverse()
         return self.parent_tag.pose.transform_by(object_to_camera).transform_by(camera_to_robot)
 
-
-field = (
+"""field = (
     KnownTag.from_inches(0.0, 0.0, 0.0, 180),           # 0
     KnownTag.from_inches(42.19, 610.77, 18.22, 180),    # 1
     KnownTag.from_inches(108.19, 610.77, 18.22, 180),   # 2
@@ -57,9 +65,8 @@ field = (
     KnownTag.from_inches(147.19,  40.45, 18.22, 0),     # 6
     KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7
     KnownTag.from_inches(42.19,  40.45, 18.22, 0)       # 8
-)
-"""field = (
-    None,
-    KnownTag(-1.2318, 0, 12, 180),
-    KnownTag(1.65, 0, 12, 180)
 )"""
+field = (
+    None,
+    KnownTag(0, 0, 0, 180)
+)
