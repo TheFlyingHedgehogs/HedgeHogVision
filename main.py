@@ -13,9 +13,6 @@ mtx, dist = pkl.load(open("calib-picam-0", "rb"))
 calibration = PinholeCalibration(mtx, dist)
 
 tag_finder = Detector(calibration)
-# detector = Detector()
-# tags = detector.find_tags(img)
-# start(detector)
 
+#start(detector)
 collectFakeSD(tag_finder)
-#print(detector.get_world_pos_from_image(img))

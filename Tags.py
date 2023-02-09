@@ -36,16 +36,7 @@ class KnownTag:
 
 
 class FoundTag:
-    def __init__(self, parent_tag: KnownTag, translation: ArrayLike, rotation: ArrayLike):
-        self.parent_tag: KnownTag = parent_tag
-        """The ID of the apriltag"""
-        translation: Translation3d = Translation3d.from_matrix(translation)
-        """Translation of the camera from the apriltag"""
-        rotation3d: Rotation3d = Rotation3d.from_matrix(rotation)
-        """Rotation matrix of the apriltag from the matrix"""
-        self.tag_transform: Transform3d = Transform3d(translation, rotation3d)
-
-    def get_robot_location(self):
+    def __get_robot_location(self):
         """
 
         :return: Robots real world position
@@ -54,6 +45,19 @@ class FoundTag:
         object_to_camera = self.tag_transform.inverse()
         camera_to_robot = _robotToCamera.inverse()
         return self.parent_tag.pose.transform_by(object_to_camera).transform_by(camera_to_robot)
+
+    def __init__(self, parent_tag: KnownTag, translation: ArrayLike, rotation: ArrayLike):
+        self.parent_tag: KnownTag = parent_tag
+        """The ID of the apriltag"""
+        translation: Translation3d = Translation3d.from_matrix(translation)
+        """Translation of the camera from the apriltag"""
+        rotation3d: Rotation3d = Rotation3d.from_matrix(rotation)
+        """Rotation matrix of the apriltag from the matrix"""
+        self.tag_transform: Transform3d = Transform3d(translation, rotation3d)
+        self.robot_position = self.__get_robot_location()
+
+    def __str__(self):
+        return f"Tag: {self.tag_transform}"
 
 """field = (
     KnownTag.from_inches(0.0, 0.0, 0.0, 180),           # 0
@@ -68,5 +72,12 @@ class FoundTag:
 )"""
 field = (
     None,
-    KnownTag(0, 0, 0, 180)
+    KnownTag(0, 0, 0, 180),
+    KnownTag(0, 0, 0, 180),
+    KnownTag(0, 0, 0, 180),
+    KnownTag(0, 0, 0, 180),
+    KnownTag(0, 0, 0, 180),
+    KnownTag(0, 0, 0, 180),
+    KnownTag(0, 0, 0, 180),
+    KnownTag(0, 0, 0, 180),
 )

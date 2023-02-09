@@ -16,7 +16,10 @@ def debug(tag_finder: Detector) -> None:
 
     while True:
         img = getImage()
-        location = tag_finder.get_world_pos_from_image(img)
+        info = tag_finder.get_world_pos_from_image_debug(img)
+        location = info[0]
+        if(location.translation.x < 0): print("!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print(info[1])
         print(location)
         location.to_smart_dashboard()
         """frames += 1

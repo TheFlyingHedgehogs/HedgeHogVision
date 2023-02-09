@@ -36,6 +36,12 @@ class Transform3d:
             self.rotation.unary_minus()
         )
 
+    def field_distance(self, other) -> float:
+        """:returns: the distance between the transform's x and y values
+        :param other: Transform to find distance to
+        """
+        return self.translation.field_distance(other.translation)
+
     @staticmethod
     def zero():
         """Empty Transform3d instance

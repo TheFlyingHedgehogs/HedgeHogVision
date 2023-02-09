@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pyquaternion import Quaternion
 from numpy.typing import ArrayLike
 from math_stuff.rotation3d import Rotation3d
+from math import sqrt
 @dataclass
 class Translation3d:
     """Describes the position of an object in 3D space"""
@@ -50,3 +51,7 @@ class Translation3d:
         return Translation3d(0.0, 0.0, 0.0)
     def is_zero(self) -> bool:
         return self.x == 0 and self.y ==0 and self.z == 0
+    def field_distance(self, other) -> float:
+        """:return: The distance between self and "other"
+        :param: other the second translation to find the distance to"""
+        return sqrt((abs(self.x)-abs(other.x))**2 + (abs(self.z)-abs(other.z))**2)
