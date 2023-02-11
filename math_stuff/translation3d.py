@@ -54,4 +54,4 @@ class Translation3d:
     def field_distance(self, other) -> float:
         """:return: The distance between self and "other"
         :param: other the second translation to find the distance to"""
-        return sqrt((abs(self.x)-abs(other.x))**2 + (abs(self.z)-abs(other.z))**2 + (abs(self.y)-abs(other.y))**2)
+        return sqrt((self.x-other.x)**2 + (self.z-other.z)**2 + (self.y - other.y)**2)
