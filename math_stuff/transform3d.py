@@ -37,7 +37,7 @@ class Transform3d:
         )
 
     def field_distance(self, other) -> float:
-        """:returns: the distance between the transform's x and y values
+        """:returns: the distance between the transform's x and y and z values
         :param other: Transform to find distance to
         """
         return self.translation.field_distance(other.translation)

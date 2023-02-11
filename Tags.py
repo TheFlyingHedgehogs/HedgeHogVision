@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+
+import numpy
+
 from math_stuff.math_stuff import Transform3d, Translation3d, Pose3d, Rotation3d
 from pyquaternion import Quaternion
 from numpy.typing import ArrayLike
@@ -35,6 +38,11 @@ class KnownTag:
         )
 
 
+class MegaTag(KnownTag):
+    def __init__(self, x: float, y: float, z: float, rotation_degrees: float):
+        KnownTag.__init__(self, x, y, z, rotation_degrees)
+
+
 class FoundTag:
     def __get_robot_location(self):
         """
@@ -45,16 +53,27 @@ class FoundTag:
         object_to_camera = self.tag_transform.inverse()
         camera_to_robot = _robotToCamera.inverse()
         return self.parent_tag.pose.transform_by(object_to_camera).transform_by(camera_to_robot)
+    def __get_guess_location(self):
+        """
+        :return: Robots real world position
+        :rtype: Pose3d
+        """
+        object_to_camera = self.tag_transform.inverse()
+        camera_to_robot = _robotToCamera.inverse()
+        return Pose3d.zero().transform_by(object_to_camera).transform_by(camera_to_robot)
 
-    def __init__(self, parent_tag: KnownTag, translation: ArrayLike, rotation: ArrayLike):
+    def __init__(self, parent_tag: KnownTag, translation: ArrayLike, rotation: ArrayLike, id: int = 0):
+        self.id = id
         self.parent_tag: KnownTag = parent_tag
         """The ID of the apriltag"""
-        translation: Translation3d = Translation3d.from_matrix(translation)
+        translation3d: Translation3d = Translation3d.from_matrix(translation)
         """Translation of the camera from the apriltag"""
         rotation3d: Rotation3d = Rotation3d.from_matrix(rotation)
         """Rotation matrix of the apriltag from the matrix"""
-        self.tag_transform: Transform3d = Transform3d(translation, rotation3d)
+        self.tag_transform: Transform3d = Transform3d(translation3d, rotation3d)
         self.robot_position = self.__get_robot_location()
+        self.distance = self.__get_guess_location()
+        self.first_guess = numpy.matmul(rotation, translation)
 
     def __str__(self):
         return f"Tag: {self.tag_transform}"
@@ -74,10 +93,10 @@ field = (
     None,
     KnownTag(0, 0, 0, 180),
     KnownTag(0, 0, 0, 180),
+    KnownTag(1.91, 0, 0, 180),
+    KnownTag(-1, 0, 0, 180),
+    KnownTag(1, 0, 0, 180),
+    KnownTag(3, 0, 0, 180),
     KnownTag(0, 0, 0, 180),
-    KnownTag(0, 0, 0, 180),
-    KnownTag(0, 0, 0, 180),
-    KnownTag(0, 0, 0, 180),
-    KnownTag(0, 0, 0, 180),
-    KnownTag(0, 0, 0, 180),
+    KnownTag(0.87, 0, 0, 180),
 )
