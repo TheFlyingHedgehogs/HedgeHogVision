@@ -27,8 +27,7 @@ def debug(tag_finder: Detector) -> None:
         #info = tag_finder.get_world_pos_from_image_debug(img)
         #location = info[0]
         #print(location)
-        info = tag_finder.get_world_pos_from_image_normal(img)
-        location = info[0]
+        location, leng = tag_finder.get_world_pos_from_image_debug(img)
         print(location)
         location.to_smart_dashboard()
         """frames += 1

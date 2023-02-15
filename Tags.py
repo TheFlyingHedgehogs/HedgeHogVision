@@ -89,14 +89,19 @@ class FoundTag:
     KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7
     KnownTag.from_inches(42.19,  40.45, 18.22, 0)       # 8
 )"""
-field = (
+"""field = (
     None,
-    KnownTag(0, 0, 0, 180),
-    KnownTag(0, 0, 0, 180),
+    KnownTag(-1, 0, 0, 180),
+    KnownTag(1, 0, 0, 180),
     KnownTag(1.91, 0, 0, 180),
     KnownTag(-1, 0, 0, 180),
     KnownTag(1, 0, 0, 180),
     KnownTag(3, 0, 0, 180),
     KnownTag(0, 0, 0, 180),
     KnownTag(0.87, 0, 0, 180),
+)"""
+field = (
+    KnownTag(0, 0, 0, 180),
+    KnownTag(0.72, 0, 0, 180),
+    KnownTag(1.625, 0, 0, 180),
 )

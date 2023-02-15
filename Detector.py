@@ -73,10 +73,10 @@ class Detector:
                 image_points[b] = pts[a]
                 image_points[a] = pts[b]
 
-            swap(0, 3)
-            swap(1, 2)
-            swap(2, 1)
-            swap(3, 0)
+            #swap(0, 3)
+            #swap(1, 2)
+            #swap(2, 1)
+            #swap(3, 0)
             c = image_points
 
             cv2.drawMarker(image, ((int(c[0][0]), int(c[0][1]))), (255, 0, 0))
@@ -86,55 +86,67 @@ class Detector:
 
             tag = field[item.tag_id]
             realworld_points = []
-            realworld_points.append((self.object_points[0][0] + tag.x, self.object_points[0][1] + tag.z))
-            realworld_points.append((self.object_points[1][0] + tag.x, self.object_points[1][1] + tag.z))
-            realworld_points.append((self.object_points[2][0] + tag.x, self.object_points[2][1] + tag.z))
-            realworld_points.append((self.object_points[3][0] + tag.x, self.object_points[3][1] + tag.z))
+            realworld_points.append((self.object_points[0][0] + tag.x, self.object_points[0][1] + tag.y))
+            realworld_points.append((self.object_points[1][0] + tag.x, self.object_points[1][1] + tag.y))
+            realworld_points.append((self.object_points[2][0] + tag.x, self.object_points[2][1] + tag.y))
+            realworld_points.append((self.object_points[3][0] + tag.x, self.object_points[3][1] + tag.y))
 
             lines.append(
                 [
-                    [realworld_points[3], realworld_points[0]],
-                    [image_points[3], image_points[0]]
+                    [realworld_points[0], realworld_points[3]],
+                    [image_points[0], image_points[3]],
+                    tag
                 ]
             )
             lines.append(
                 [
-                    [realworld_points[2], realworld_points[1]],
-                    [image_points[2], image_points[1]]
+                    [realworld_points[1], realworld_points[2]],
+                    [image_points[1], image_points[2]],
+                    tag
                 ]
             )
         detected = []
-        lines = sorted(lines, key=lambda l : l[0][0])
-        print(len(lines))
+        lines = sorted(lines, key=lambda l : -l[0][0][0])
+        print(lines)
+        colors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(255,0,255),(0,255,255),(255,255,255)]
+        e = 0
+        print("Cal")
         for i in range(len(lines)-1):
-            for k in range(len(lines) - (i)):
-                j = i + k
-                # Lines[line#][realworld/image][up/down][x/y]
+            for k in range(len(lines) - (i+1)):
+                j = i + k + 1
+
+                e += 1
+                if(e >= len(colors)): e = 0
+                # Lines[line#][realworld/image/tag][up/down][x/y]
+                #print(lines[i][1][0])
+                height = lines[i][0][0][1] - lines[i][0][1][1]
+                width = lines[j][0][0][0] - lines[i][0][0][0]
+                if(width == 0): continue;
+                if(lines[i][2].z != lines[j][2].z): continue
+                print(width)
                 success, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(
                     np.array([
-                        [lines[i][0][0][0], lines[i][0][0][1], 0.0],
-                        [lines[j][0][0][0], lines[j][0][0][1], 0.0],
-                        [lines[j][0][1][0], lines[j][0][1][1], 0.0],
-                        [lines[i][0][1][0], lines[i][0][1][1], 0.0],
+                        [-width/2, height/2, 0.0],
+                        [width/2, height/2, 0.0],
+                        [width/2, -height/2, 0.0],
+                        [-width/2, -height/2, 0.0],
                     ], dtype=np.float64),
                     np.array([
-                        lines[i][0][1],
-                        lines[i][1][1],
                         lines[i][1][0],
-                        lines[i][0][0]
+                        lines[j][1][0],
+                        lines[j][1][1],
+                        lines[i][1][1]
                     ],
                     dtype=np.float64),
                     self.calibration.mtx,
                     self.calibration.dist,
                     flags=cv2.SOLVEPNP_IPPE_SQUARE)
                 if not success: continue
-                # Lines[line#][realworld/image][up/down][x/y]
-                tag_x = lines[i][0][0][0] + (lines[j][0][1][0]-lines[i][0][0][0])
-                tag_y = lines[i][0][1][1] + (lines[j][0][0][1]-lines[i][0][1][1])
-                known_tag = MegaTag(tag_x, tag_y, 0, 90)
+                tag_x = (lines[i][0][0][0] + lines[j][0][0][0])/2
+                tag_y = (lines[i][0][1][1] + lines[i][0][0][1])/2
+                known_tag = MegaTag(tag_x, tag_y, lines[i][2].z, 180)
                 rotation_vector, translation_vector = None, None
 
-                # If first translation vector is behind tag, and tag is flipped, choose the first option
                 #vectori0 = Rotation3d.from_matrix(cv2.Rodrigues(rvecs[0])[0]).q.axis
                 to_append = []
                 for (r, t) in zip(rotation_vectors,translation_vectors):
@@ -142,6 +154,7 @@ class Detector:
                     found_tag = FoundTag(known_tag, t, rotation_matrix,item.tag_id)
                     to_append.append(found_tag)
                 detected.append(to_append)
+
         return detected
 
 

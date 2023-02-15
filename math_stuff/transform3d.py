@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from math_stuff.rotation3d import Rotation3d
 from math_stuff.translation3d import Translation3d
 from dashboard import SmartDashboard, NetworkTables
+from statistics import mean
+from statistics import stdev
+
 @dataclass
 class Transform3d:
     """Describes the transform of and object in 3D space"""
@@ -23,7 +26,7 @@ class Transform3d:
         return Transform3d(self.translation + other.translation, self.rotation + other.rotation)
 
     def __truediv__(self, other):
-        if type(other) is int:
+        if type(other) is int or float:
             return Transform3d(self.translation / other, self.rotation / other)
 
     def inverse(self):
@@ -60,3 +63,14 @@ class Transform3d:
             return_transform += i
         return_transform = return_transform / len(transforms)
         return return_transform
+    @staticmethod
+    def standardDev(center, points) -> float:
+        """
+
+        :param center: Average of all points
+        :return: average distance from center
+        """
+        distances = []
+        for point in points:
+            distances.append(center.field_distance(point))
+        return stdev(distances)

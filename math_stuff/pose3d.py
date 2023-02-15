@@ -5,7 +5,7 @@ from math_stuff.rotation3d import Rotation3d
 from math_stuff.translation3d import Translation3d
 from math_stuff.transform3d import Transform3d
 @dataclass
-class Pose3d:
+class Pose3d(Transform3d):
     """Describes a 3d pose"""
     translation: Translation3d
     rotation: Rotation3d
@@ -22,7 +22,6 @@ class Pose3d:
     def field_distance(self,other):
         """Gets the distance from other in 2D"""
         return self.translation.field_distance(other.translation)
-
     def __repr__(self):
         return f"Pose:\n\t{self.translation},\n\t{self.rotation}"
 

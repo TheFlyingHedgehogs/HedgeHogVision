@@ -39,6 +39,12 @@ def collectSD(tag_finder: Detector) -> None:
         print(f"Standard Deviations from real value: [Z: {realZStandardDev}, X: {realXStandardDev}]")
         print(f"Difference from real to estimate [z:{abs(ZDist-meanZ)}, x:{abs(XDist-meanX)}]")
         print("--+-- ==+== New Test ==+== --+--")
+class TagAccuracy:
+    def __init__(self, num_of_tags):
+        self.Xpairs = []
+        self.Ypairs = []
+        self.Zpairs = []
+        self.tags = num_of_tags
 
 def collectFakeSD(tag_finder: Detector) -> None:
     """Starts the main loop, and prints values for FPS """
@@ -48,17 +54,21 @@ def collectFakeSD(tag_finder: Detector) -> None:
         listofOutputs = []
         location = Transform3d.zero()
         lastimg = getImage()
-        for i in range(100):
-            time.sleep(0.01)
+        start = time.time()
+        while len(listofOutputs < 100):
             # while location.translation.is_zero():
             newImg = getImage()
-            location = tag_finder.get_world_pos_from_image(newImg)
-            listofOutputs.append(location)
-        def getX(a: Transform3d): return a.translation.x
-        def getY(a: Transform3d): return a.translation.y
-        def getZ(a: Transform3d): return a.translation.z
-        print(f"-====== X: {list(map(getX, listofOutputs))}")
+            tagLocs = tag_finder.get_world_pos_from_image_characterize(newImg)
+            if(location == None): listofOutputs.append(location)
+        get_stats =
 
+
+
+        print(f"Took: {(start - time.time())/100} seconds")
+        getX = lambda transf : transf.translation.x
+        getY = lambda transf : transf.translation.y
+        getZ = lambda transf : transf.translation.z
+        print(f"-====== X: {list(map(getX, listofOutputs))}")
         meanX = mean(map(getX, listofOutputs))
         meanY = mean(map(getY, listofOutputs))
         meanZ = mean(map(getZ, listofOutputs))
@@ -67,5 +77,7 @@ def collectFakeSD(tag_finder: Detector) -> None:
         YStandardDev = stdev(map(getY, listofOutputs),meanY)
         ZStandardDev = stdev(map(getZ, listofOutputs),meanZ)
         print(f"Standard Deviations: [x: {XStandardDev}, y: {YStandardDev}, z: {ZStandardDev}]")
-        input("--+-- ==+== New Test ==+== --+--")
+        stop = input("--+-- ==+== New Test ==+== --+--")
+        if(stop == "stop"): break
+
 
