@@ -9,6 +9,8 @@ from math_stuff.math_stuff import Transform3d
 from dashboard import SmartDashboard
 from math_stuff.rotation3d import Rotation3d
 from math_stuff.translation3d import Translation3d
+from multiprocessing import Pool
+import time
 import time
 """
 b    g
@@ -57,9 +59,55 @@ class Info:
         self.real_line = real_line
         self.image_line = image_line
         self.parent = parent
+
+def process_tag(arg):
+    line1 = arg[0]
+    line2 = arg[1]
+    calibration = arg[2]
+    height = line1.real_line.top.y - line1.real_line.bot.y
+    width = line2.real_line.bot.x - line1.real_line.bot.x
+    if(width == 0): return
+    if(line1.parent.z != line2.parent.z): return
+    success, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(
+        np.array([
+            [-width/2, height/2, 0.0],
+            [width/2, height/2, 0.0],
+            [width/2, -height/2, 0.0],
+            [-width/2, -height/2, 0.0],
+        ], dtype=np.float64),
+        np.array([
+            line1.image_line.top.arr2d,
+            line2.image_line.top.arr2d,
+            line2.image_line.bot.arr2d,
+            line1.image_line.bot.arr2d
+        ],
+            dtype=np.float64),
+        calibration.mtx,
+        calibration.dist,
+        flags=cv2.SOLVEPNP_IPPE)
+    if not success: return
+    tag_x = (line1.real_line.top.x + line2.real_line.top.x)/2
+    tag_y = (line1.real_line.top.y + line1.real_line.bot.y)/2
+    """Line(
+        Point(lines[i].image_line.top.x, lines[i].image_line.top.y + (e*10)),
+        Point(lines[i].image_line.top.x + widthi, lines[i].image_line.top.y + (e*10))
+    ).draw(image, (255,255,0))"""
+    #Point((lines[i].image_line.top.x + lines[j].image_line.top.x)/2, (lines[i].image_line.top.y + lines[i].image_line.bot.y)/2).draw(image, (0, 0, 125))
+    known_tag = MegaTag(tag_x, tag_y, line1.parent.z, 180)
+    rotation_vector, translation_vector = None, None
+
+    to_append = []
+    for (r, t) in zip(rotation_vectors,translation_vectors):
+        rotation_matrix = cv2.Rodrigues(r)[0]
+        found_tag = FoundTag(known_tag, t, rotation_matrix,99)
+        to_append.append(found_tag)
+    return to_append
+
 class Detector:
-    """Used to find Apriltags in an image and return a position on the field"""
+    """Used to find Apriltags in an image and return a position on the field
+    MegaTagDetector: Uses corners of tags to creat new tags, and find positions of those fake tags"""
     def update(self):
+        """Updates roborio position from SmartBoard"""
         self.roborioPosition = Translation3d(Translation3d.getValue("RobotX"), 0, Translation3d.getValue("RobotY"))
     def __init__(self, calibration: Calibration, tag_width_m: float = 0.1524):
         self.lastKnownPosition: Transform3d = None
@@ -80,14 +128,46 @@ class Detector:
         ], dtype=np.float64)
 
     def find_tags(self, image: ArrayLike):
+        """
+        :rtype list[cv2.Detection]:
+        :param image: Image to find tags
+        :return: A list of tag detections in the images, filtered by hamming and decision margin
+        """
         gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         found = self.detector.detect(gray)
 
-        return list(filter(lambda item : item.hamming > 0 or item.decision_margin < 0.7 or item.tag_id >= len(field), found)) #or item.tag_id == 0: continue
-
-    def create_mega_tags(self, tags):
+        return list(filter(lambda item: not (item.hamming > 0 or item.decision_margin < 0.7 or item.tag_id >= len(field)), found)) #or item.tag_id == 0: continue
+    def create_mega_tags(self, tags) -> list[list[FoundTag]]:
+        """
+        Finds edges of the tag, finds out their real-world position.
+        Then it reconstructs the tags, and uses SolvePNP to find the real-world distance from the camera to the tags.
+        Because there is ambiguit across the x axis on SolvePNP's position, this function returns a list pairs of tags, one of them correct, and another one on the wrong side of the tag
+        To throw out the incorrect tags, use a function such as "trimmed_tags"
+        :param tags: List of Detections to find the corners of
+        :return: List of tag pairs
+        """
 
         lines = []
+        if len(tags) == 0: return []
+        if len(tags) == 1:
+            item = tags[0]
+            image_points = item.corners
+
+            success, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(self.object_points, image_points, self.calibration.mtx, self.calibration.dist, flags=cv2.SOLVEPNP_IPPE_SQUARE)
+            if not success: return []
+
+            known_tag = field[item.tag_id]
+            rotation_vector, translation_vector = None, None
+
+            # If first translation vector is behind tag, and tag is flipped, choose the first option
+            #vectori0 = Rotation3d.from_matrix(cv2.Rodrigues(rvecs[0])[0]).q.axis
+            to_append = []
+            for (r, t) in zip(rotation_vectors,translation_vectors):
+                rotation_matrix = cv2.Rodrigues(r)[0]
+                found_tag = FoundTag(known_tag, t, rotation_matrix,item.tag_id)
+                to_append.append(found_tag)
+            return [to_append]
+
 
         for item in tags:
 
@@ -143,65 +223,25 @@ class Detector:
                     tag
                 )
             )
+
+
         detected = []
         lines = sorted(lines, key=lambda l : l.real_line.top.x)
         colors = [(255, 0, 0), (0, 255, 0), (0,0,255),(255,255,0),(255,0,255),(0,255,255),(255,255,255)]
         e = 0
+        args = []
         for i in range(len(lines)-1):
             for k in range(len(lines) - (i+1)):
                 j = i + k + 1
-                #print(lines[i].image_line.arr)
-                #print(lines[j].image_line.arr)
-                #lines[i].image_line.draw(image, (255,0,255))
-                #lines[j].image_line.draw(image, (255,0,255))
-                e += 1
-                if(e >= len(colors)): e = 0
-                # Lines[line#][realworld/image/tag][up/down][x/y]
-                height = lines[i].real_line.top.y - lines[i].real_line.bot.y
-                width = lines[j].real_line.bot.x - lines[i].real_line.bot.x
-                widthi = lines[j].image_line.bot.x - lines[i].image_line.bot.x
-                if(width == 0): continue;
-                if(lines[i].parent.z != lines[j].parent.z): continue
-                success, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(
-                    np.array([
-                        [-width/2, height/2, 0.0],
-                        [width/2, height/2, 0.0],
-                        [width/2, -height/2, 0.0],
-                        [-width/2, -height/2, 0.0],
-                    ], dtype=np.float64),
-                    np.array([
-                        lines[i].image_line.top.arr2d,
-                        lines[j].image_line.top.arr2d,
-                        lines[j].image_line.bot.arr2d,
-                        lines[i].image_line.bot.arr2d
-                    ],
-                        dtype=np.float64),
-                    self.calibration.mtx,
-                    self.calibration.dist,
-                    flags=cv2.SOLVEPNP_IPPE)
-                if not success: continue
-                tag_x = (lines[i].real_line.top.x + lines[j].real_line.top.x)/2
-                tag_y = (lines[i].real_line.top.y + lines[i].real_line.bot.y)/2
-                Line(
-                    Point(lines[i].image_line.top.x, lines[i].image_line.top.y + (e*10)),
-                    Point(lines[i].image_line.top.x + widthi, lines[i].image_line.top.y + (e*10))
-                ).draw(image, (255,255,0))
-                Point((lines[i].image_line.top.x + lines[j].image_line.top.x)/2, (lines[i].image_line.top.y + lines[i].image_line.bot.y)/2).draw(image, (0, 0, 125))
-                known_tag = MegaTag(tag_x, tag_y, lines[i].parent.z, 180)
-                rotation_vector, translation_vector = None, None
+                args.append([lines[i], lines[j], self.calibration])
+        pool = Pool(4)
+        detected = pool.map(process_tag, args)
 
-                to_append = []
-                for (r, t) in zip(rotation_vectors,translation_vectors):
-                    rotation_matrix = cv2.Rodrigues(r)[0]
-                    found_tag = FoundTag(known_tag, t, rotation_matrix,item.tag_id)
-                    to_append.append(found_tag)
-                detected.append(to_append)
-        #cv2.imshow("test",image)
-        #cv2.waitKey(1000000)
+        if detected == None: return []
         return detected
 
     def trimmed_tags(self, tags: list[list[FoundTag]]) -> list[FoundTag]:
-        """Returns a list of tags, trimming the incorrect tags from the pairs"""
+        """Returns a list of tags, trimming the tag on the incorrect side from the pairs"""
         if len(tags) == 0: return []
         """for i in tags:
             print(i[0].id)
@@ -290,17 +330,22 @@ class Detector:
         :param img:
         :return:
         """
+        start = time.time()
         tags = self.find_tags(img)
-        if(len(tags) < 3): print("Can't see all tags"); return None;
+        print(time.time()-start)
+        if(len(tags) < 3): print("Can't see tags"); return None;
 
         tags = sorted(tags, key = lambda item : item.tag_id)
         positions = []
         for i in range(3):
-            used_tags = self.trimmed_tags(self.create_mega_tags(tags[:i+1]))
+            mega_tags = self.create_mega_tags(tags[:i+1])
+            used_tags = self.trimmed_tags(mega_tags)
             transforms = list(map(lambda tag : tag.robot_position, used_tags))
+            if(len(transforms) == 0): positions.append(Transform3d.zero()); return;
             position = Transform3d.average(transforms)
             self.lastKnownPosition = position
             positions.append(position)
+            print(time.time()-start)
         return positions
 
 
