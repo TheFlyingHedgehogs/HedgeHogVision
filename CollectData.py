@@ -70,32 +70,45 @@ def collectFakeSD(tag_finder: Detector) -> None:
     while True:
         listofOutputs = []
         start = time.time()
-        while len(listofOutputs) < 100:
+        while len(listofOutputs) < 30:
             # while location.translation.is_zero():
-            print(f"{len(listofOutputs)}% done")
+            print(f"{round(len(listofOutputs)/0.3)}% done")
             newImg = getImage()
-            tagLocs = tag_finder.get_world_pos_from_image_characterize(newImg)
-            if(tagLocs != None): listofOutputs.append(tagLocs)
+            tagCenters, tagLocs = tag_finder.get_world_pos_from_image_characterize(newImg)
+            if(tagLocs != None): listofOutputs.append([tagCenters, tagLocs])
+
+        getX = lambda transf : transf.translation.x
+        getY = lambda transf : transf.translation.y
+        getZ = lambda transf : transf.translation.z
+
+        poses3 = list(map(lambda out : out[1][2], listofOutputs))
+        center = listofOutputs[0][0][2]
+        meanXA = mean(map(getX, poses3))
+        meanYA = mean(map(getY, poses3))
+        meanZA = mean(map(getZ, poses3))
+        dist = center.field_distance(Transform3d.average(poses3))
+
+
         for i in range(3):
-            outputs = listofOutputs[i]
-            print(len(outputs))
+            center = listofOutputs[0][0][i]
+            print(len(listofOutputs))
+            print(len(listofOutputs[0]))
+            poses = list(map(lambda out : out[1][i], listofOutputs))
+            print(len(poses))
             print(f"Took: {(start - time.time())/100} seconds")
-            getX = lambda transf : transf.translation.x
-            getY = lambda transf : transf.translation.y
-            getZ = lambda transf : transf.translation.z
             #print(f"-====== X: {list(map(getX, listofOutputs))}")
-            meanX = mean(map(getX, outputs))
-            meanY = mean(map(getY, outputs))
-            meanZ = mean(map(getZ, outputs))
+            meanX = mean(map(getX, poses))
+            meanY = mean(map(getY, poses))
+            meanZ = mean(map(getZ, poses))
             print(f"Means: [x: {meanX}, y: {meanY}, z: {meanZ}]")
-            XStandardDev = stdev(map(getX, outputs),meanX)
-            YStandardDev = stdev(map(getY, outputs),meanY)
-            ZStandardDev = stdev(map(getZ, outputs),meanZ)
+            XStandardDev = stdev(map(getX, poses),meanXA)
+            YStandardDev = stdev(map(getY, poses),meanYA)
+            ZStandardDev = stdev(map(getZ, poses),meanZA)
             print(f"Standard Deviations: [x: {XStandardDev}, y: {YStandardDev}, z: {ZStandardDev}]")
             tag_infos[i].add(
-                (meanX, XStandardDev),
-                (meanY, YStandardDev),
-                (meanZ, ZStandardDev)
+                (dist, XStandardDev),
+                (dist, YStandardDev),
+                (dist, ZStandardDev)
             )
 
 

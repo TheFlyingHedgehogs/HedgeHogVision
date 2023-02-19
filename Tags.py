@@ -102,6 +102,6 @@ class FoundTag:
 )"""
 field = (
     KnownTag(0, 0, 0, 180),
-    KnownTag(0.84, 0, 0, 180),
-    KnownTag(1.65, 0, 0, 180),
+    KnownTag(1, 0, 0, 180),
+    KnownTag(2, 0, 0, 180),
 )

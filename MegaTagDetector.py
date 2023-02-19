@@ -242,7 +242,7 @@ class Detector:
 
     def trimmed_tags(self, tags: list[list[FoundTag]]) -> list[FoundTag]:
         """Returns a list of tags, trimming the tag on the incorrect side from the pairs"""
-        if len(tags) == 0: return []
+        if len(tags) == 0 or tags == None or None in tags: return []
         """for i in tags:
             print(i[0].id)
             print(i[0].robot_position)
@@ -330,24 +330,20 @@ class Detector:
         :param img:
         :return:
         """
-        start = time.time()
         tags = self.find_tags(img)
-        print(time.time()-start)
-        if(len(tags) < 3): print("Can't see tags"); return None;
+        if(len(tags) < 3): print("Can't see tags"); return None, None;
 
-        tags = sorted(tags, key = lambda item : item.tag_id)
+        tags = sorted(tags, key=lambda item: item.tag_id)
         positions = []
+        tag_centers = []
         for i in range(3):
             mega_tags = self.create_mega_tags(tags[:i+1])
             used_tags = self.trimmed_tags(mega_tags)
             transforms = list(map(lambda tag : tag.robot_position, used_tags))
-            if(len(transforms) == 0): positions.append(Transform3d.zero()); return;
+            if(len(transforms) == 0): positions.append(Transform3d.zero()); return None, None;
             position = Transform3d.average(transforms)
             self.lastKnownPosition = position
             positions.append(position)
-            print(time.time()-start)
-        return positions
 
-
-
-
+            tag_centers.append(Transform3d.average(list(map(lambda tag : field[tag.tag_id].pose, tags[i:]))))
+        return tag_centers, positions
