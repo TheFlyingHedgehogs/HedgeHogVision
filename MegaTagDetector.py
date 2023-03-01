@@ -193,12 +193,6 @@ class Detector:
             1   2
             """
 
-            c = image_points
-
-            #cv2.drawMarker(image, ((int(c[0][0]), int(c[0][1]))), (255, 0, 0))
-            #cv2.drawMarker(image, (int(c[1][0]), int(c[1][1])), (0, 255, 0))
-            #cv2.drawMarker(image, (int(c[2][0]), int(c[2][1])), (0, 0, 255))
-            #cv2.drawMarker(image, ((int(c[3][0]), int(c[3][1]))), (255, 0, 255))
 
             tag = field[item.tag_id]
             realworld_points = []
