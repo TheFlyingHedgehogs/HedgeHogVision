@@ -59,6 +59,10 @@ class Info:
         self.real_line = real_line
         self.image_line = image_line
         self.parent = parent
+class RealAndImagePoint:
+    def __init__(self, real_point, image_point):
+        self.real_point = real_point
+        self.image_point = image_point
 
 def process_tag(arg):
     line1 = arg[0]
@@ -239,7 +243,85 @@ class Detector:
 
         if detected == None: return []
         return detected
+    def create_mega_tag(self, tags) -> FoundTag:
+        """
+        Finds edges of the tag, finds out their real-world position.
+        Then it reconstructs the tags, and uses SolvePNP to find the real-world distance from the camera to the tags.
+        Because there is ambiguit across the x axis on SolvePNP's position, this function returns a list pairs of tags, one of them correct, and another one on the wrong side of the tag
+        To throw out the incorrect tags, use a function such as "trimmed_tags"
+        :param tags: List of Detections to find the corners of
+        :return: List of tag pairs
+        """
 
+        top = []
+        bottom = []
+        field_tags = []
+        if len(tags) == 0: return []
+        if len(tags) == 1:
+            item = tags[0]
+            image_points = item.corners
+
+            success, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(self.object_points, image_points, self.calibration.mtx, self.calibration.dist, flags=cv2.SOLVEPNP_IPPE_SQUARE)
+            if not success: return []
+
+            known_tag = field[item.tag_id]
+            rotation_vector, translation_vector = None, None
+
+            # If first translation vector is behind tag, and tag is flipped, choose the first option
+            to_append = []
+            for (r, t) in zip(rotation_vectors,translation_vectors):
+                rotation_matrix = cv2.Rodrigues(r)[0]
+                found_tag = FoundTag(known_tag, t, rotation_matrix,item.tag_id)
+                to_append.append(found_tag)
+            return [to_append]
+
+
+        for item in tags:
+            image_points = item.corners
+
+            tag = field[item.tag_id]
+            field_tags.append(tag)
+            realtopleft = Point(self.object_points[0][0] + tag.x, self.object_points[0][1] + tag.y)
+            realbottomleft = Point(self.object_points[3][0] + tag.x, self.object_points[3][1] + tag.y)
+
+            realtopright = Point(self.object_points[1][0] + tag.x, self.object_points[1][1] + tag.y)
+            realbottomright = Point(self.object_points[2][0] + tag.x, self.object_points[2][1] + tag.y)
+
+            imagetopleft = Point(image_points[0][0], image_points[0][1])
+            imagebottomleft = Point(image_points[3][0], image_points[3][1])
+
+            imagetopright = Point(image_points[1][0], image_points[1][1])
+            imagebottomright = Point(image_points[2][0], image_points[2][1])
+
+            top.append(RealAndImagePoint(realtopleft,imagetopleft)),
+            top.append(RealAndImagePoint(realtopright, imagetopright))
+            bottom.append(RealAndImagePoint(realbottomleft,imagebottomleft))
+            bottom.append(RealAndImagePoint(realbottomright,imagebottomright))
+        top = sorted(top, key=lambda l : l.real_point.x)
+        bottom = sorted(bottom, key=lambda l : l.real_point.x,reverse=True)
+        realworldpoints = []
+        imagepoints = []
+        for i in top:
+            realworldpoints.append([i.real_point.x,i.real_point.y, 0.0])
+            imagepoints.append([i.image_point.x, i.image_point.y])
+        for i in bottom:
+            realworldpoints.append([i.real_point.x, i.real_point.y, 0.0])
+            imagepoints.append([i.image_point.x, i.image_point.y])
+
+        success, rotation_vector, translation_vector = cv2.solvePnP(
+                    np.array(realworldpoints, dtype=np.float64),
+                    np.array(imagepoints, dtype=np.float64),
+                    self.calibration.mtx,
+                    self.calibration.dist)
+        if not success: return
+        tag_x = sum(list(map(lambda x : x.real_point.x, top))) / len(top)
+        tag_y = sum(list(map(lambda x : x.real_point.x, top))) / len(top)
+
+        known_tag = MegaTag(tag_x, tag_y, field_tags[0].z, 180)
+        to_append = []
+        rotation_matrix = cv2.Rodrigues(rotation_vector)[0]
+        found_tag = FoundTag(known_tag, translation_vector, rotation_matrix,99)
+        return found_tag
     def trimmed_tags(self, tags: list[list[FoundTag]]) -> list[FoundTag]:
         """Returns a list of tags, trimming the tag on the incorrect side from the pairs"""
         if len(tags) == 0 or tags == None or None in tags: return []
@@ -323,6 +405,13 @@ class Detector:
         self.lastKnownPosition = position
         #self.listOfLastPos.append(position)
         return position, len(tags)
+    def get_world_pos_from_image_single_tag_strats(self, img: ArrayLike):
+        tags = self.find_tags(img)
+        if len(tags) <= 1: return Transform3d.zero(), 0
+        mega_tag = self.create_mega_tag(self.find_tags(img))
+        print(mega_tag)
+        return mega_tag.robot_position
+
 
     def get_world_pos_from_image_characterize(self, img: ArrayLike):
         """

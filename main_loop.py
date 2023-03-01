@@ -16,20 +16,13 @@ def debug(tag_finder: Detector) -> None:
 
     while True:
         img = getImage()
-        """tags = tag_finder.find_mega_tags(img)
-        print("EEEEEEEEEEEEEEEEEEEEEEEEEEE")
-        for i in tags:
-            print(
-                str(i[0].robot_position),
-                str(i[1].robot_position)
-            )
-        """
-        #info = tag_finder.get_world_pos_from_image_debug(img)
         #location = info[0]
         #print(location)
-        location, leng = tag_finder.get_world_pos_from_image_debug(img)
-        print(location)
-        location.to_smart_dashboard()
+        location1 = tag_finder.get_world_pos_from_image_single_tag_strats(img)
+        location2 = tag_finder.get_world_pos_from_image(img)
+        print(location2)
+        print(location1)
+        #location.to_smart_dashboard()
         """frames += 1
         if frames >= 100:
             now = time.perf_counter()
