@@ -102,7 +102,7 @@ class FoundTag:
 )"""
 field = (
     None,
-    KnownTag.from_inches(132, 0, -99, 180),
-    KnownTag(31+132, 0, -99, 180),
-    KnownTag(28+31+132, 0, -99, 180),
+    KnownTag.from_inches(132, -99, 0, 0),
+    KnownTag.from_inches(31+132, -99, 0, 0),
+    KnownTag.from_inches(28+31+132, -99, 0, 0),
 )

@@ -18,10 +18,10 @@ def debug(tag_finder: Detector) -> None:
         img = getImage()
         #location = info[0]
         #print(location)
-        location1 = tag_finder.get_world_pos_from_image_single_tag_strats(img)
+        #location1 = tag_finder.get_world_pos_from_image_single_tag_strats(img)
         location2 = tag_finder.get_world_pos_from_image(img)
         print(location2)
-        print(location1)
+        #print(location1)
         #location.to_smart_dashboard()
         """frames += 1
         if frames >= 100:
