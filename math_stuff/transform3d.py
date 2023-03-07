@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from math_stuff.rotation3d import Rotation3d
 from math_stuff.translation3d import Translation3d
-from dashboard import SmartDashboard, NetworkTables
+import dashboard
 from statistics import mean
 from statistics import stdev
 import time
@@ -13,17 +13,22 @@ class Transform3d:
     rotation: Rotation3d
     """Rotation of the transform"""
     def to_smart_dashboard(self):
-        if(self.translation.is_zero()): return;
-        SmartDashboard.putNumber("VisionX", self.translation.x)
-        SmartDashboard.putNumber("VisionY", self.translation.y)
-        SmartDashboard.putNumber("VisionZ", self.translation.z)
-        SmartDashboard.putNumber("VisionRotation", self.rotation.to_euler_angles()[0])
-        SmartDashboard.putNumber("VisionLastUpdate", time.time())
+        if(self.translation.is_zero()): return
+        if(self.translation.x < 0 or self.translation.y < 0): return
+        print("Put network tables")
+        dashboard.SmartDashboard.putNumber("VISIONX", self.translation.x)
+        dashboard.SmartDashboard.putNumberArray("VisionPos",
+                                      [self.translation.x,
+                                       self.translation.y,
+                                       self.translation.z,
+                                       self.rotation.to_euler_angles()[0]
+                                       ]
+                                      )
         #SmartDashboard.putNumber("r", self.rotation.q.x)
         #SmartDashboard.putNumber("i", self.rotation.q.y)
         #SmartDashboard.putNumber("j", self.rotation.q.z)
         #SmartDashboard.putNumber("k", self.rotation.q.w)
-        NetworkTables.flush()
+        dashboard.NetworkTables.flush()
 
     def __add__(self, other):
         return Transform3d(self.translation + other.translation, self.rotation + other.rotation)

@@ -5,7 +5,7 @@ from numpy.typing import ArrayLike
 from Calibration import Calibration
 from Tags import FoundTag, field, MegaTag
 from math_stuff.math_stuff import Transform3d
-from dashboard import SmartDashboard
+from dashboard import OdometryDashboard
 from math_stuff.rotation3d import Rotation3d
 from math_stuff.translation3d import Translation3d
 from abc import ABC
@@ -22,7 +22,9 @@ p    r
 class Detector(ABC):
     """Used to find Apriltags in an image and return a position on the field (ABSTRACT CLASS, DO NOT INSTANTIATE)"""
     def update(self):
-        self.roborioPosition = Translation3d(Translation3d.getValue("RobotX"), 0, Translation3d.getValue("RobotY"))
+        self.roborioPosition = Translation3d(OdometryDashboard.getNumberArray("y", self.lastKnownPosition.translation.x),
+                                             self.lastKnownPosition.translation.y,
+                                             OdometryDashboard.getNumberArray("x", self.lastKnownPosition.translation.z))
     def __init__(self, calibration: Calibration, tag_width_m: float = 0.1524):
         self.lastKnownPosition: Transform3d = None
         self.roborioPosition: Translation3d = None

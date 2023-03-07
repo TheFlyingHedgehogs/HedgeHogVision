@@ -78,7 +78,7 @@ class FoundTag:
     def __str__(self):
         return f"Tag: {self.tag_transform}"
 
-"""field = (
+field = (
     KnownTag.from_inches(0.0, 0.0, 0.0, 180),           # 0
     KnownTag.from_inches(42.19, 610.77, 18.22, 180),    # 1
     KnownTag.from_inches(108.19, 610.77, 18.22, 180),   # 2
@@ -88,7 +88,7 @@ class FoundTag:
     KnownTag.from_inches(147.19,  40.45, 18.22, 0),     # 6
     KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7
     KnownTag.from_inches(42.19,  40.45, 18.22, 0)       # 8
-)"""
+)
 """field = (
     None,
     KnownTag(-1, 0, 0, 180),
@@ -100,9 +100,9 @@ class FoundTag:
     KnownTag(0, 0, 0, 180),
     KnownTag(0.87, 0, 0, 180),
 )"""
-field = (
+"""field = (
     None,
     KnownTag.from_inches(132, -99, 0, 0),
     KnownTag.from_inches(31+132, -99, 0, 0),
     KnownTag.from_inches(28+31+132, -99, 0, 0),
-)
+)"""
