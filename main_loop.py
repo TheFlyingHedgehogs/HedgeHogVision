@@ -8,7 +8,12 @@ def start(tag_finder: Detector) -> None:
     """Starts the main loop, putting value to smart dashboard"""
     while True:
         tag_finder.update()
-        tag_finder.get_world_pos_from_image(getImage()).to_smart_dashboard()
+        pos, stdev = tag_finder.get_world_pos_with_deviation(getImage())
+        print(pos)
+        pos.to_smart_dashboard("VisionPos")
+        stdev.to_smart_dashboard("VisionStdDev")
+        print("IMMMMMMMMM RUNNNNNNNNING")
+
 
 
 def debug(tag_finder: Detector) -> None:

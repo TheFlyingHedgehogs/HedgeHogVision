@@ -1,5 +1,5 @@
 import cv2
-from Tags import MegaTag
+from Tags import MegaTag, KnownTag
 
 class Point:
     def __init__(self,x: float = 0,y: float = 0, z: float = 0):
@@ -58,10 +58,10 @@ class Line:
         return Line(imageTop, imageBottom)
 
 class LinePair:
-    def __init__(self, real_line: Line, image_line: Line, parent: MegaTag):
+    def __init__(self, real_line: Line, image_line: Line, parent: KnownTag):
         self.real_line = real_line
         self.image_line = image_line
-        self.parent = parent
+        self.parent: KnownTag = parent
 
     @staticmethod
     def create_from_info(side, object_points, image_points, tag):

@@ -41,10 +41,10 @@ class IndividualDetector(Detector):
                 image_points[b] = pts[a]
                 image_points[a] = pts[b]
 
-            swap(0, 3)
-            swap(1, 2)
-            swap(2, 1)
-            swap(3, 0)
+            #swap(0, 3)
+            #swap(1, 2)
+            #swap(2, 1)
+            #swap(3, 0)
 
             success, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(self.object_points, image_points, self.calibration.mtx, self.calibration.dist, flags=cv2.SOLVEPNP_IPPE_SQUARE)
             if not success: continue
@@ -54,7 +54,7 @@ class IndividualDetector(Detector):
             to_append = []
             for (r, t) in zip(rotation_vectors,translation_vectors):
                 rotation_matrix = cv2.Rodrigues(r)[0]
-                found_tag = FoundTag(known_tag, t, rotation_matrix,item.tag_id)
+                found_tag = FoundTag(known_tag, t, rotation_matrix, item.tag_id)
                 to_append.append(found_tag)
             detected.append(to_append)
         return detected

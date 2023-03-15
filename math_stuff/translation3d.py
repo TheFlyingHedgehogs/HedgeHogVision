@@ -24,6 +24,8 @@ class Translation3d:
         """:return: Translation3d with all values flipped
         :rtype: Translation3d"""
         return Translation3d(-self.x, -self.y, -self.z)
+    def abs(self):
+        return Translation3d(abs(self.x), abs(self.y), abs(self.z))
 
     def rotate_by(self, other: Rotation3d):
         """
@@ -40,6 +42,8 @@ class Translation3d:
     def __truediv__(self, other):
         if type(other) is int:
             return Translation3d(self.x / other, self.y / other, self.z / other)
+    def __sub__(self, other):
+        return Translation3d(self.x - other.x, self.y - other.y, self.z - other.z)
     def __str__(self):
         return f"Translation: (x: {self.x},y: {self.y}, z: {self.z})"
 
@@ -55,3 +59,5 @@ class Translation3d:
         """:return: The distance between self and "other"
         :param: other the second translation to find the distance to"""
         return sqrt((self.x-other.x)**2 + (self.z-other.z)**2 + (self.y - other.y)**2)
+    def field_distance2D(self,other):
+        return sqrt((self.x-other.x)**2 + (self.z-other.z)**2)

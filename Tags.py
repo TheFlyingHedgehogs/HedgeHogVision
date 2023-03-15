@@ -25,15 +25,11 @@ class KnownTag:
         self.z: float = z
         """Z position of the tag relative to a corner of the field in meters"""
         self.rotation: float = math.radians(rotation_degrees)
-        self.flipped = None
-        """If the tag is facing toward 0,0"""
-        if rotation_degrees == 0: self.flipped = False
-        else: self.flipped = True
+        self.rotationDegrees: float = rotation_degrees
+
         """Rotation of the tag relative to the center of the field in radians."""
         self.pose = Pose3d(
             Translation3d(x, y, z),
-            # Rotation3d.zero()
-            # Translation3d.zero(),
             Rotation3d(Quaternion(axis=[1.0, 0.0, 0.0], radians=self.rotation))
         )
 
@@ -78,12 +74,34 @@ class FoundTag:
     def __str__(self):
         return f"Tag: {self.tag_transform}"
 
-field = (
+"""field = (
     KnownTag.from_inches(0.0, 0.0, 0.0, 180),           # 0
     KnownTag.from_inches(42.19, 610.77, 18.22, 180),    # 1
     KnownTag.from_inches(108.19, 610.77, 18.22, 180),   # 2
     KnownTag.from_inches(147.19, 610.77, 18.22, 180),   # 3
     KnownTag.from_inches(265.74, 636.96, 27.38, 180),   # 4
+    KnownTag.from_inches(265.74,  14.25, 27.38, 0),     # 5
+    KnownTag.from_inches(147.19,  40.45, 18.22, 0),     # 6
+    KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7
+    KnownTag.from_inches(42.19,  40.45, 18.22, 0)       # 8
+)"""
+"""field = (
+    None,           # 0
+    KnownTag.from_inches(42.19, 610.77, 18.22, 0),    # 1
+    KnownTag.from_inches(108.19, 610.77, 18.22, 0),   # 2
+    KnownTag.from_inches(147.19, 610.77, 18.22, 0),   # 3
+    KnownTag.from_inches(265.74, 636.96, 27.38, 0),   # 4
+    KnownTag.from_inches(265.74,  14.25, 27.38, 0),     # 5
+    KnownTag.from_inches(147.19,  40.45, 18.22, 0),     # 6
+    KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7
+    KnownTag.from_inches(42.19,  40.45, 18.22, 0)       # 8
+)"""
+field = (
+    None,           # 0
+    KnownTag.from_inches(0, 0, 18.22, 180),    # 1
+    KnownTag.from_inches(65.748031, 0, 18.22, 180),   # 2
+    KnownTag.from_inches(65.748031 + 65.748031, 0, 18.22, 180),   # 3
+    KnownTag.from_inches(265.74, 0, 27.38, 180),   # 4
     KnownTag.from_inches(265.74,  14.25, 27.38, 0),     # 5
     KnownTag.from_inches(147.19,  40.45, 18.22, 0),     # 6
     KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7

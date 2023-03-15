@@ -12,12 +12,12 @@ class Transform3d:
     """Translation of the transform"""
     rotation: Rotation3d
     """Rotation of the transform"""
-    def to_smart_dashboard(self):
+    def to_smart_dashboard(self, name):
         if(self.translation.is_zero()): return
-        if(self.translation.x < 0 or self.translation.y < 0): return
-        print("Put network tables")
-        dashboard.SmartDashboard.putNumber("VISIONX", self.translation.x)
-        dashboard.SmartDashboard.putNumberArray("VisionPos",
+        if(self.translation.x < 0 or self.translation.z < 0): return
+        if(self.translation.x > 8.2296 or self.translation.z > 16.4592): return
+        #print("Put network tables")
+        dashboard.SmartDashboard.putNumberArray(name,
                                       [self.translation.x,
                                        self.translation.y,
                                        self.translation.z,
@@ -36,6 +36,8 @@ class Transform3d:
     def __truediv__(self, other):
         if type(other) is int or float:
             return Transform3d(self.translation / other, self.rotation / other)
+    def __sub__(self, other):
+        return Transform3d(self.translation - other.translation, self.rotation - other.rotation)
 
     def inverse(self):
         """
@@ -52,6 +54,8 @@ class Transform3d:
         :param other: Transform to find distance to
         """
         return self.translation.field_distance(other.translation)
+    def abs(self):
+        return Transform3d(self.translation.abs(),Rotation3d.zero())
 
     @staticmethod
     def zero():
@@ -66,9 +70,21 @@ class Transform3d:
         """:param transforms: The list transforms to be averaged
         :return: A Transform3d in the center of transforms
         :rtype: Transform3d"""
+        if(len(transforms) == 0): return Transform3d.zero()
         return_transform = Transform3d.zero()
         for i in transforms:
             return_transform += i
+        return_transform = return_transform / len(transforms)
+        return return_transform
+    @staticmethod
+    def averageDistanceTo(transforms, center):
+        """:param transforms: The list transforms to be averaged
+        :return: A Transform3d in the center of transforms
+        :rtype: Transform3d"""
+        if(len(transforms) == 0): return Transform3d.zero()
+        return_transform = Transform3d.zero()
+        for i in transforms:
+            return_transform += (i - center).abs()
         return_transform = return_transform / len(transforms)
         return return_transform
     @staticmethod
@@ -80,5 +96,6 @@ class Transform3d:
         """
         distances = []
         for point in points:
-            distances.append(center.field_distance(point))
+            distances.append(point.field_distance(center))
+        print(mean(distances))
         return stdev(distances)

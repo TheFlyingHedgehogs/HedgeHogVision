@@ -22,6 +22,8 @@ class Pose3d(Transform3d):
     def field_distance(self,other):
         """Gets the distance from other in 2D"""
         return self.translation.field_distance(other.translation)
+    def field_distance2D(self, other):
+        return  self.translation.field_distance2D(other.translation)
     def __repr__(self):
         return f"Pose:\n\t{self.translation},\n\t{self.rotation}"
 

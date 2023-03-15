@@ -46,6 +46,9 @@ class Rotation3d:
     def __truediv__(self, other):
         if type(other) is int:
             return Rotation3d(self.q / other)
+
+    def __sub__(self, other):
+        return Rotation3d(self.q - other.q)
     def __str__(self):
         x, y, z = self.to_euler_angles()
         return f"Rotation: (x: {x}, y: {y}, z: {z})"
