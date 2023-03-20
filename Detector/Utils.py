@@ -46,8 +46,8 @@ class Line:
     @staticmethod
     def create_real_from_tag(side, object_points, tag):
         points = Line.side_points(side)
-        realTop = Point(object_points[points[0]][0] + tag.x, object_points[points[0]][1] + tag.y)
-        realBottom = Point(object_points[points[1]][0] + tag.x, object_points[points[1]][1] + tag.y)
+        realTop = Point(object_points[points[0]][0] + tag.x, object_points[points[0]][1] + tag.y, tag.z)
+        realBottom = Point(object_points[points[1]][0] + tag.x, object_points[points[1]][1] + tag.y, tag.z)
         return Line(realTop, realBottom)
 
     @staticmethod

@@ -1,18 +1,26 @@
 import time
 
+from dashboard import SmartDashboard, NetworkTables
 from Detector import Detector
 from camera import getImage
-
+import time
 
 def start(tag_finder: Detector) -> None:
     """Starts the main loop, putting value to smart dashboard"""
     while True:
         tag_finder.update()
+
+        start_time = time.time()
         pos, stdev = tag_finder.get_world_pos_with_deviation(getImage())
-        print(pos)
+        #print("Position: ")
+        #print(pos.translation)
+        #print("STDEV")
+        #print(stdev.translation)
+
         pos.to_smart_dashboard("VisionPos")
         stdev.to_smart_dashboard("VisionStdDev")
-        print("IMMMMMMMMM RUNNNNNNNNING")
+        SmartDashboard.putNumber("FrameRate", time.time()-start_time)
+        NetworkTables.flush()
 
 
 
@@ -21,11 +29,15 @@ def debug(tag_finder: Detector) -> None:
     frames = 0
 
     while True:
-        img = getImage()
         tag_finder.update()
-        location = tag_finder.get_world_pos_from_image(img)
-        print(location)
-        location.to_smart_dashboard()
+        pos, stdev = tag_finder.get_world_pos_with_deviation(getImage())
+        print("Position: ")
+        print(pos.translation)
+        print("STDEV")
+        print(stdev.translation)
+
+        pos.to_smart_dashboard("VisionPos")
+        stdev.to_smart_dashboard("VisionStdDev")
         """frames += 1
         if frames >= 100:
             now = time.perf_counter()

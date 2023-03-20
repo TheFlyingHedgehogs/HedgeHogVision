@@ -22,9 +22,10 @@ p    r
 class Detector(ABC):
     """Used to find Apriltags in an image and return a position on the field (ABSTRACT CLASS, DO NOT INSTANTIATE)"""
     def update(self):
-        self.roborioPosition = Translation3d(OdometryDashboard.getNumberArray("y", self.lastKnownPosition.translation.x),
-                                             self.lastKnownPosition.translation.y,
-                                             OdometryDashboard.getNumberArray("x", self.lastKnownPosition.translation.z))
+        self.roborioPosition = Translation3d(OdometryDashboard.getNumber("y", self.lastKnownPosition.translation.x),
+                                             0,
+                                             OdometryDashboard.getNumber("x", self.lastKnownPosition.translation.z))
+        print(self.roborioPosition)
     def __init__(self, calibration: Calibration, tag_width_m: float = 0.1524):
         self.lastKnownPosition: Transform3d = Transform3d.zero()
         self.roborioPosition: Translation3d = None
@@ -86,7 +87,7 @@ class Detector(ABC):
         if len(tags) == 0 or tags == None or None in tags: return []
         if len(tags) == 1:
             if self.roborioPosition is not None:
-                return [tags[0][self.roborioPosition.field_distance(tags[0][0].robot_position.translation) <
+                return [tags[0][self.roborioPosition.field_distance(tags[0][0].robot_position.translation) >
                                 self.roborioPosition.field_distance(tags[0][1].robot_position.translation)]]
             if self.lastKnownPosition is None:
                 return [tags[0][tags[0][0].robot_position.translation.y < 0]]
@@ -145,12 +146,13 @@ class Detector(ABC):
         tags = self.find_tags(img)
         trimmedTags = self.trimmed_tags(self.create_tags(tags))
         if len(trimmedTags) == 0:
-            return Transform3d.zero(), Transform3d(Translation3d(999,999,999),Rotation3d.zero())
+            return Transform3d.zero(), Transform3d(Translation3d(999, 999, 999), Rotation3d.zero())
         transforms = list(map(lambda tag : tag.robot_position, trimmedTags))
         position = Transform3d.average(transforms)
         self.lastKnownPosition = position
-
-        stdev = Transform3d.averageDistanceTo(transforms, position)
+        if(len(tags) == 1): stdev = Transform3d(Translation3d(1, 1, 1),Rotation3d.zero())
+        else:
+            stdev = (Transform3d.averageDistanceTo(transforms, position) * 4)/len(tags)
 
         return position, stdev
 
@@ -162,13 +164,14 @@ class Detector(ABC):
             return []
         positions = []
         for i in range(len(tags)):
-            print(f"Num of tags used = {len(tags[i:])}")
+            print(f"Num of tags used = {len(tags[i:])}\n!!!!!!!!!!!!!!!!!!!!!!!!!!")
             createdTags = self.create_tags(tags[i:])
-            #for i in createdTags:
-                #print(i[0].robot_position)
-                #print(i[1].robot_position)
             found_tags = self.trimmed_tags(createdTags)
-            print(len(found_tags))
+
+            #for i in found_tags:
+            #    print(i.robot_position)
+            #print(len(found_tags))
+            print("--------------------------------------------")
             transforms = list(map(lambda tag : tag.robot_position, found_tags))
             positions.append(Transform3d.average(transforms))
         self.lastKnownPosition = positions[0]

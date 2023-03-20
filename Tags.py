@@ -70,7 +70,6 @@ class FoundTag:
         self.robot_position = self.__get_robot_location()
         self.distance = self.__get_guess_location()
         self.first_guess = numpy.matmul(rotation, translation)
-
     def __str__(self):
         return f"Tag: {self.tag_transform}"
 
@@ -85,42 +84,20 @@ class FoundTag:
     KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7
     KnownTag.from_inches(42.19,  40.45, 18.22, 0)       # 8
 )"""
-"""field = (
+field = (
     None,           # 0
     KnownTag.from_inches(42.19, 610.77, 18.22, 0),    # 1
     KnownTag.from_inches(108.19, 610.77, 18.22, 0),   # 2
     KnownTag.from_inches(147.19, 610.77, 18.22, 0),   # 3
     KnownTag.from_inches(265.74, 636.96, 27.38, 0),   # 4
-    KnownTag.from_inches(265.74,  14.25, 27.38, 0),     # 5
-    KnownTag.from_inches(147.19,  40.45, 18.22, 0),     # 6
-    KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7
-    KnownTag.from_inches(42.19,  40.45, 18.22, 0)       # 8
-)"""
-field = (
-    None,           # 0
-    KnownTag.from_inches(0, 0, 18.22, 180),    # 1
-    KnownTag.from_inches(65.748031, 0, 18.22, 180),   # 2
-    KnownTag.from_inches(65.748031 + 65.748031, 0, 18.22, 180),   # 3
-    KnownTag.from_inches(265.74, 0, 27.38, 180),   # 4
-    KnownTag.from_inches(265.74,  14.25, 27.38, 0),     # 5
-    KnownTag.from_inches(147.19,  40.45, 18.22, 0),     # 6
-    KnownTag.from_inches(108.19,  40.45, 18.22, 0),     # 7
-    KnownTag.from_inches(42.19,  40.45, 18.22, 0)       # 8
+    KnownTag.from_inches(265.74,  14.25, 27.38, 180),     # 5
+    KnownTag.from_inches(147.19,  40.45, 18.22, 180),     # 6
+    KnownTag.from_inches(108.19,  40.45, 18.22, 180),     # 7
+    KnownTag.from_inches(42.19,  40.45, 18.22, 180)       # 8
 )
 """field = (
     None,
-    KnownTag(-1, 0, 0, 180),
-    KnownTag(1, 0, 0, 180),
-    KnownTag(1.91, 0, 0, 180),
-    KnownTag(-1, 0, 0, 180),
-    KnownTag(1, 0, 0, 180),
-    KnownTag(3, 0, 0, 180),
-    KnownTag(0, 0, 0, 180),
-    KnownTag(0.87, 0, 0, 180),
-)"""
-"""field = (
-    None,
-    KnownTag.from_inches(132, -99, 0, 0),
-    KnownTag.from_inches(31+132, -99, 0, 0),
-    KnownTag.from_inches(28+31+132, -99, 0, 0),
+    KnownTag(0 + 0.655, 0, 0, 180),
+    KnownTag(0.915 + 0.655, 0, 0, 180),
+    KnownTag(0.915 + 0.84 +0.655, 0, 0, 180),
 )"""

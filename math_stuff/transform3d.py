@@ -18,9 +18,9 @@ class Transform3d:
         if(self.translation.x > 8.2296 or self.translation.z > 16.4592): return
         #print("Put network tables")
         dashboard.SmartDashboard.putNumberArray(name,
-                                      [self.translation.x,
+                                      [self.translation.z,
+                                       self.translation.x,
                                        self.translation.y,
-                                       self.translation.z,
                                        self.rotation.to_euler_angles()[0]
                                        ]
                                       )
@@ -38,6 +38,8 @@ class Transform3d:
             return Transform3d(self.translation / other, self.rotation / other)
     def __sub__(self, other):
         return Transform3d(self.translation - other.translation, self.rotation - other.rotation)
+    def __mul__(self, other):
+        return Transform3d(self.translation * other, self.rotation)
 
     def inverse(self):
         """
@@ -97,5 +99,4 @@ class Transform3d:
         distances = []
         for point in points:
             distances.append(point.field_distance(center))
-        print(mean(distances))
         return stdev(distances)
