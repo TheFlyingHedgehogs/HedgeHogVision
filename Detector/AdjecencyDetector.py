@@ -24,8 +24,8 @@ def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[Fo
     height = line1.real_line.top.y - line1.real_line.bot.y
     width = line2.real_line.bot.x - line1.real_line.bot.x
     print(width)
-    if(line1.parent.z != line2.parent.z):
-        if(line1.parent.z > line2.parent.z):
+    if(line1.parent.z != line2.parent.z): return
+    """if(line1.parent.z > line2.parent.z):
             z2 = 0.0
             z1 = line1.parent.z - line2.parent.z
         else:
@@ -50,7 +50,10 @@ def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[Fo
             z2 = line2.parent.z - line1.parent.z
     else:
         z1 = 0.0
-        z2 = 0.0
+        z2 = 0.0"""
+    rotation = line1.parent.rotation
+    z1 = 0.0
+    z2 = 0.0
     arr = np.array([
         [-width/2, height/2, z1],
         [width/2, height/2, z2],
@@ -111,10 +114,10 @@ class AdjecencyDetector(Detector):
             j = i + 1
             args.append([lines[i], lines[j], self.calibration, i, j])
         detected = []
-        #pool = Pool(4)
-        #detected = list(filter(lambda a : a != None, pool.map(process_tag, args)))
-        for i in args:
-            detected.append(process_tag(i))
+        pool = Pool(4)
+        detected = list(filter(lambda a : a != None, pool.map(process_tag, args)))
+        #for i in args:
+        #    detected.append(process_tag(i))
 
         if detected is None: return []
         return detected

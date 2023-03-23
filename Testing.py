@@ -8,7 +8,7 @@ import Tags
 from Tags import KnownTag
 import cv2
 
-img = cv2.imread("/home/ozy/Documents/Tag/TEST.png")
+img = cv2.imread("/home/ozy/Documents/Tag/CoolerTest4.9_5.png")
 calibration = perfect_camera(50, 36, (1920, 1080))
 
 print(Tags.field)
