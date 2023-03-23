@@ -23,11 +23,21 @@ def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[Fo
     calibration = arg[2]
     height = line1.real_line.top.y - line1.real_line.bot.y
     width = line2.real_line.bot.x - line1.real_line.bot.x
+    print(width)
+    if(line1.parent.z != line2.parent.z):
+        if(line1.parent.z > line2.parent.z):
+            z2 = 0.0
+            z1 = line1.parent.z - line2.parent.z
+        else:
+            z1 = 0.0
+            z2 = line2.parent.z - line1.parent.z
     if(line1.parent.z != line2.parent.z):
         if(line1.parent.rotation != line2.parent.rotation): return
         adjecent = line2.real_line.top.x - line1.real_line.top.x
         opposite = line2.parent.z - line1.parent.z
         r=math.atan2(opposite, adjecent)
+        zdiff = abs(line2.parent.z - line1.parent.z)
+        #width = math.sqrt(width**2 + zdiff**2)
         rotation = r + line1.parent.rotation
     else:
         rotation = line1.parent.rotation
@@ -41,14 +51,14 @@ def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[Fo
     else:
         z1 = 0.0
         z2 = 0.0
-    #rotation = line1.parent.rotation
+    arr = np.array([
+        [-width/2, height/2, z1],
+        [width/2, height/2, z2],
+        [width/2, -height/2, z2],
+        [-width/2, -height/2, z1],
+    ], dtype=np.float64)
     success, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(
-        np.array([
-            [-width/2, height/2, z1],
-            [width/2, height/2, z2],
-            [width/2, -height/2, z2],
-            [-width/2, -height/2, z1],
-        ], dtype=np.float64),
+        arr,
         np.array([
             line1.image_line.top.arr2d,
             line2.image_line.top.arr2d,
@@ -60,9 +70,9 @@ def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[Fo
         calibration.dist,
         flags=cv2.SOLVEPNP_IPPE)
     if not success: return
-    tag_x = (line1.real_line.top.x + line2.real_line.top.x)/2
+    tag_x = line1.real_line.top.x #+ line2.real_line.top.x)/2
     tag_y = (line1.real_line.top.y + line1.real_line.bot.y)/2
-    known_tag = MegaTag(tag_x, tag_y, line1.parent.z, math.degrees(rotation))
+    known_tag = MegaTag(tag_x, tag_y, (line1.parent.z + line2.parent.z)/2, math.degrees(rotation))
     to_append = []
     for (r, t) in zip(rotation_vectors,translation_vectors):
         rotation_matrix = cv2.Rodrigues(r)[0]
@@ -100,8 +110,11 @@ class AdjecencyDetector(Detector):
         for i in range(len(lines)-1):
             j = i + 1
             args.append([lines[i], lines[j], self.calibration, i, j])
-        pool = Pool(4)
-        detected = list(filter(lambda a : a != None, pool.map(process_tag, args)))
+        detected = []
+        #pool = Pool(4)
+        #detected = list(filter(lambda a : a != None, pool.map(process_tag, args)))
+        for i in args:
+            detected.append(process_tag(i))
 
         if detected is None: return []
         return detected

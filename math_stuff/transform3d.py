@@ -12,17 +12,20 @@ class Transform3d:
     """Translation of the transform"""
     rotation: Rotation3d
     """Rotation of the transform"""
-    def to_smart_dashboard(self, name):
+    def to_smart_dashboard(self, name, *args):
         if(self.translation.is_zero()): return
         if(self.translation.x < 0 or self.translation.z < 0): return
         if(self.translation.x > 8.2296 or self.translation.z > 16.4592): return
         #print("Put network tables")
+        upload = [self.translation.z,
+                  self.translation.x,
+                  self.translation.y,
+                  self.rotation.to_euler_angles()[0]
+                  ]
+        if(len(args) > 0):
+            for i in args: upload.append(i)
         dashboard.SmartDashboard.putNumberArray(name,
-                                      [self.translation.z,
-                                       self.translation.x,
-                                       self.translation.y,
-                                       self.rotation.to_euler_angles()[0]
-                                       ]
+                                        upload
                                       )
         #SmartDashboard.putNumber("r", self.rotation.q.x)
         #SmartDashboard.putNumber("i", self.rotation.q.y)

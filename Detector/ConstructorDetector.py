@@ -44,7 +44,7 @@ def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[Fo
         calibration.dist,
         flags=cv2.SOLVEPNP_IPPE)
     if not success: return
-    tag_x = (line1.real_line.top.x + line2.real_line.top.x)/2
+    tag_x = line1.real_line.top.x
     tag_y = (line1.real_line.top.y + line1.real_line.bot.y)/2
     known_tag = MegaTag(tag_x, tag_y, line1.parent.z, line1.parent.rotationDegrees)
     to_append = []

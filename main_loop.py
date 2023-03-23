@@ -17,9 +17,8 @@ def start(tag_finder: Detector) -> None:
         #print("STDEV")
         #print(stdev.translation)
 
-        pos.to_smart_dashboard("VisionPos")
         stdev.to_smart_dashboard("VisionStdDev")
-        SmartDashboard.putNumber("FrameRate", time.time()-start_time)
+        pos.to_smart_dashboard("VisionPos", time.time()-start_time)
         NetworkTables.flush()
 
 

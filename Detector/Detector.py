@@ -25,7 +25,6 @@ class Detector(ABC):
         self.roborioPosition = Translation3d(OdometryDashboard.getNumber("y", self.lastKnownPosition.translation.x),
                                              0,
                                              OdometryDashboard.getNumber("x", self.lastKnownPosition.translation.z))
-        print(self.roborioPosition)
     def __init__(self, calibration: Calibration, tag_width_m: float = 0.1524):
         self.lastKnownPosition: Transform3d = Transform3d.zero()
         self.roborioPosition: Translation3d = None
@@ -145,14 +144,18 @@ class Detector(ABC):
         """
         tags = self.find_tags(img)
         trimmedTags = self.trimmed_tags(self.create_tags(tags))
+#        for i in trimmedTags:
+#            print(i.robot_position)
         if len(trimmedTags) == 0:
             return Transform3d.zero(), Transform3d(Translation3d(999, 999, 999), Rotation3d.zero())
         transforms = list(map(lambda tag : tag.robot_position, trimmedTags))
         position = Transform3d.average(transforms)
         self.lastKnownPosition = position
-        if(len(tags) == 1): stdev = Transform3d(Translation3d(1, 1, 1),Rotation3d.zero())
+        if(len(tags) == 1):
+            dev = max(2,Transform3d.average(list(map(lambda tag : tag.tag_transform, trimmedTags))).translation.z)/2
+            stdev = Transform3d(Translation3d(dev, dev, dev),Rotation3d.zero())
         else:
-            stdev = (Transform3d.averageDistanceTo(transforms, position) * 4)/len(tags)
+            stdev = (Transform3d.averageDistanceTo(transforms, position) * 2)/len(tags)
 
         return position, stdev
 
@@ -168,9 +171,13 @@ class Detector(ABC):
             createdTags = self.create_tags(tags[i:])
             found_tags = self.trimmed_tags(createdTags)
 
-            #for i in found_tags:
-            #    print(i.robot_position)
-            #print(len(found_tags))
+            for i in found_tags:
+                print("NNNNEWWWWWWWWWWWWWWWWWW TAGGGGGGGGGG")
+                print(i.robot_position)
+                print(i.tag_transform)
+
+
+        #print(len(found_tags))
             print("--------------------------------------------")
             transforms = list(map(lambda tag : tag.robot_position, found_tags))
             positions.append(Transform3d.average(transforms))
