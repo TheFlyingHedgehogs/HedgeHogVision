@@ -1,5 +1,5 @@
 import cv2
-from Tags import MegaTag, KnownTag
+from HedgeHogVision.Tags.Tags import KnownTag
 
 class Point:
     def __init__(self,x: float = 0,y: float = 0, z: float = 0):

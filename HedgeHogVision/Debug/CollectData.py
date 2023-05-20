@@ -1,12 +1,10 @@
-import time
-
-from Detector import Detector
-from camera import getImage
-from math_stuff.transform3d import Transform3d
+from HedgeHogVision.Detector import Detector
+from HedgeHogVision.Camera.camera import getImage
+from HedgeHogVision.math_stuff.transform3d import Transform3d
 from statistics import mean
 from statistics import stdev
 import time
-import copy
+
 
 def collectSD(tag_finder: Detector) -> None:
     """Starts the main loop, and prints values for FPS """

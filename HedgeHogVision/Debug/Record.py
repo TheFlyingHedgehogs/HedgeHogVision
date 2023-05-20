@@ -1,7 +1,7 @@
 from datetime import datetime
 import time
-from Detector import Detector
-from camera import getImage
+from HedgeHogVision.Detector import Detector
+from HedgeHogVision.Camera.camera import getImage
 
 def startRecoding(tag_finder: Detector) -> None:
     """Starts the main loop, and prints values for FPS """

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pyquaternion import Quaternion
 from numpy.typing import ArrayLike
-from math_stuff.rotation3d import Rotation3d
+from HedgeHogVision.math_stuff.rotation3d import Rotation3d
 from math import sqrt
 @dataclass
 class Translation3d:

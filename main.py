@@ -1,15 +1,37 @@
-import cv2
-from Calibration import PinholeCalibration
-from Detector.IndividualDetector import IndividualDetector
-from Detector.ConstructorDetector import ConstructorDetector
-from Detector.AdjecencyDetector import AdjecencyDetector
-from main_loop import start, debug
+from HedgeHogVision.Camera.Calibration import PinholeCalibration, perfect_camera
+from HedgeHogVision.SmartDashboard.dashboard import VisionNetworkTable
+from HedgeHogVision.Detector.AdjecencyDetector import AdjecencyDetector
+from HedgeHogVision.Detector.IndividualDetector import IndividualDetector
+from HedgeHogVision.math_stuff.math_stuff import Transform3d, Translation3d, Rotation3d
 import pickle as pkl
 
-mtx, dist = pkl.load(open("calib-picam-4", "rb"))
-calibration = PinholeCalibration(mtx, dist)
-#cv2.QT_QPA_PLATFORM = "wayland"
-tag_finder = AdjecencyDetector(calibration)
+from HedgeHogVision.HedgeHogDetector import HedgeHogDetector
 
-start(tag_finder)
+import cv2
+from HedgeHogVision.Tags.Tags import field
+
+#VisionNetworkTable.fromString("10.28.98.2","Vision","SmartDashboard/Odometry")
+#mtx, dist = pkl.load(open("calib-picam-4", "rb"))
+#calibration = PinholeCalibration(mtx, dist)
+calibration = perfect_camera(50, 36, (1920, 1080))
+
+#cv2.QT_QPA_PLATFORM = "wayland"
+#tag_finder = AdjecencyDetector(calibration)
+_robotToCamera = Transform3d(Translation3d(-0.1397,0,-0.16), Rotation3d.zero())
+img = cv2.imread("/home/ozy/Documents/Tag/test8_2.png")
+
+print(field[5].pose)
+
+detector = HedgeHogDetector(
+    AdjecencyDetector,
+    calibration,
+    field,
+    cameraOffset=_robotToCamera
+)
+
+
+print(detector.solveImage(img))
+
+
+#start(tag_finder)
 #debug(tag_finder)

@@ -32,20 +32,19 @@ class FisheyeCalibration(Calibration):
 #                 [0.0,          focal_length, 540],
 #                 [0.0,                   0.0, 1.0]])
 # dist = np.array([[0.0, 0.0, 0.0, 0.0, 0.0]])
+class VisionPiCamera:
+    def __init__(self, size = (1296, 972)):
+        self.camera = Picamera2()
+        video_config = self.camera.create_video_configuration({"size": size})
+        self.camera.set_controls({"AeExposureMode": controls.AeExposureModeEnum.Short})
+        self.camera.set_controls({"AnalogueGain": 100})
+        self.camera.configure(video_config)
+        self.camera.start()
 
-picam2 = Picamera2()
-video_config = picam2.create_video_configuration({"size": (1296, 972)})
-picam2.set_controls({"AeExposureMode": controls.AeExposureModeEnum.Short})
-picam2.set_controls({"AnalogueGain": 100})
-picam2.configure(video_config)
-picam2.start()
+        time.sleep(2)
 
-time.sleep(2)
-
-start = time.perf_counter()
-frames = 0
-
-
-def getImage():
-    return picam2.capture_array("main")
+        start = time.perf_counter()
+        frames = 0
+        def getImage(self):
+            return self.camera.capture_array("main")
 

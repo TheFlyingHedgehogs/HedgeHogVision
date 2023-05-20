@@ -2,15 +2,14 @@ import cv2
 import numpy as np
 import pupil_apriltags
 from numpy.typing import ArrayLike
-from Calibration import Calibration
-from Tags import FoundTag, field, MegaTag
-from math_stuff.math_stuff import Transform3d
-from dashboard import OdometryDashboard
-from math_stuff.rotation3d import Rotation3d
-from math_stuff.translation3d import Translation3d
+from HedgeHogVision.Camera.Calibration import Calibration
+from HedgeHogVision.Tags.Tags import FoundTag, KnownTag
+from HedgeHogVision.math_stuff.math_stuff import Transform3d
+from HedgeHogVision.math_stuff.rotation3d import Rotation3d
+from HedgeHogVision.math_stuff.translation3d import Translation3d
 from abc import ABC
 from abc import abstractmethod
-import time
+
 """
 b    g
 +---+
@@ -21,26 +20,23 @@ p    r
 
 class Detector(ABC):
     """Used to find Apriltags in an image and return a position on the field (ABSTRACT CLASS, DO NOT INSTANTIATE)"""
-    def update(self):
-        self.roborioPosition = Translation3d(OdometryDashboard.getNumber("y", self.lastKnownPosition.translation.x),
-                                             0,
-                                             OdometryDashboard.getNumber("x", self.lastKnownPosition.translation.z))
-    def __init__(self, calibration: Calibration, tag_width_m: float = 0.1524):
+    def __init__(self, calibration: Calibration, field: list[KnownTag]):
         self.lastKnownPosition: Transform3d = Transform3d.zero()
         self.roborioPosition: Translation3d = None
         self.time_since_last_update = 0
 
         self.calibration = calibration
         self.detector = pupil_apriltags.Detector(families="tag16h5", nthreads=4)  # TODO test thread count
+        self.field = field
 
-        tag_half = tag_width_m / 2
+        """tag_half = tag_width_m / 2
         self.tag_half = tag_half
         self.object_points = np.array([
             [-tag_half,  tag_half, 0.0],
             [ tag_half,  tag_half, 0.0],
             [ tag_half, -tag_half, 0.0],
             [-tag_half, -tag_half, 0.0]
-        ], dtype=np.float64)
+        ], dtype=np.float64)"""
 
     @abstractmethod
     def create_tags(self, tags) -> list[list[FoundTag]]: pass
@@ -53,8 +49,8 @@ class Detector(ABC):
         """
         gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         found = self.detector.detect(gray)
-        firstFilter = list(filter(lambda item: not (item.hamming > 0 or item.decision_margin < 0.7 or item.tag_id >= len(field)), found))
-        return list(filter(lambda item : field[item.tag_id] != None, firstFilter))
+        firstFilter = list(filter(lambda item: not (item.hamming > 0 or item.decision_margin < 0.7 or item.tag_id >= len(self.field)), found))
+        return list(filter(lambda item : self.field[item.tag_id] is not None, firstFilter))
     def __get_cluster(self, startPair: list[FoundTag,FoundTag], pairList: list[list[FoundTag,FoundTag]]) -> tuple[list[FoundTag], float]:
         first_tag_pos = startPair[0].robot_position
         first_total_error = 0
@@ -107,8 +103,6 @@ class Detector(ABC):
         #
         # if(len(returnValue) < len(tags)/2): return chosen
         # return returnValue"""
-    def standardDev(self, numberOfTags, distFromCenter):
-        return Transform3d(Translation3d(0.5, 0.5, 0.5), Rotation3d.zero())
     def get_world_pos_from_image(self, img: ArrayLike):
         """Used to get real world position from apriltags on the feild.
         :return: The field position of the bot
@@ -121,22 +115,18 @@ class Detector(ABC):
         position = Transform3d.average(transforms)
         self.lastKnownPosition = position
         return position
-    def get_world_pos_with_deviation(self, img: ArrayLike):
+    def debug_pos_from_image(self, img: ArrayLike):
         """Used to get real world position from apriltags on the feild.
         :return: The field position of the bot
         :rtype: Transform3d
         """
-        tags = self.find_tags(img)
-        trimmedTags = self.trimmed_tags(self.create_tags(tags))
-        if len(trimmedTags) == 0:
-            return Transform3d.zero(), Transform3d(Translation3d(999,999,999),Rotation3d.zero())
-        transforms = list(map(lambda tag : tag.robot_position, trimmedTags))
+        tags = self.trimmed_tags(self.create_tags(self.find_tags(img)))
+        if len(tags) == 0:
+            return Transform3d.zero()
+        transforms = list(map(lambda tag : tag.robot_position, tags))
         position = Transform3d.average(transforms)
         self.lastKnownPosition = position
-
-        stdev = self.standardDev(len(tags), position)
-
-        return position, stdev
+        return transforms, position
     def get_world_pos_with_deviation(self, img: ArrayLike):
         """Used to get real world position from apriltags on the feild.
         :return: The field position of the bot
@@ -146,40 +136,15 @@ class Detector(ABC):
         trimmedTags = self.trimmed_tags(self.create_tags(tags))
 #        for i in trimmedTags:
 #            print(i.robot_position)
-        if len(trimmedTags) == 0:
-            return Transform3d.zero(), Transform3d(Translation3d(999, 999, 999), Rotation3d.zero())
+        if len(trimmedTags) == 0: return Transform3d.zero(), Transform3d(Translation3d(999, 999, 999), Rotation3d.zero())
+
         transforms = list(map(lambda tag : tag.robot_position, trimmedTags))
         position = Transform3d.average(transforms)
         self.lastKnownPosition = position
         if(len(tags) == 1):
-            dev = max(2,Transform3d.average(list(map(lambda tag : tag.tag_transform, trimmedTags))).translation.z)/2
+            dev = max(2.0, Transform3d.average(list(map(lambda tag : tag.tag_transform, trimmedTags))).translation.z)/2
             stdev = Transform3d(Translation3d(dev, dev, dev),Rotation3d.zero())
         else:
             stdev = (Transform3d.averageDistanceTo(transforms, position) * 2)/len(tags)
 
         return position, stdev
-
-    def characterize_vision(self, img: ArrayLike) -> list[Transform3d]:
-        """Used to help characterize vision
-        :return: The estimated position, using different numbers of tags"""
-        tags = self.find_tags(img)
-        if len(tags) == 0:
-            return []
-        positions = []
-        for i in range(len(tags)):
-            print(f"Num of tags used = {len(tags[i:])}\n!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            createdTags = self.create_tags(tags[i:])
-            found_tags = self.trimmed_tags(createdTags)
-
-            for i in found_tags:
-                print("NNNNEWWWWWWWWWWWWWWWWWW TAGGGGGGGGGG")
-                print(i.robot_position)
-                print(i.tag_transform)
-
-
-        #print(len(found_tags))
-            print("--------------------------------------------")
-            transforms = list(map(lambda tag : tag.robot_position, found_tags))
-            positions.append(Transform3d.average(transforms))
-        self.lastKnownPosition = positions[0]
-        return positions

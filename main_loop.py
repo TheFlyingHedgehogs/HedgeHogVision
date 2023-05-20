@@ -1,8 +1,6 @@
-import time
-
-from dashboard import SmartDashboard, NetworkTables
-from Detector import Detector
-from camera import getImage
+from HedgeHogVision.SmartDashboard.dashboard import NetworkTables
+from HedgeHogVision.Detector import Detector
+from HedgeHogVision.Camera.camera import getImage
 import time
 
 def start(tag_finder: Detector) -> None:

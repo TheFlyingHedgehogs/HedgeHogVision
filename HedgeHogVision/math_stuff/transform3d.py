@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from math_stuff.rotation3d import Rotation3d
-from math_stuff.translation3d import Translation3d
-import dashboard
-from statistics import mean
+from HedgeHogVision.math_stuff.rotation3d import Rotation3d
+from HedgeHogVision.math_stuff.translation3d import Translation3d
+from HedgeHogVision.SmartDashboard import dashboard
 from statistics import stdev
-import time
+
+
 @dataclass
 class Transform3d:
     """Describes the transform of and object in 3D space"""
@@ -25,8 +25,8 @@ class Transform3d:
         if(len(args) > 0):
             for i in args: upload.append(i)
         dashboard.SmartDashboard.putNumberArray(name,
-                                        upload
-                                      )
+                                                upload
+                                                )
         #SmartDashboard.putNumber("r", self.rotation.q.x)
         #SmartDashboard.putNumber("i", self.rotation.q.y)
         #SmartDashboard.putNumber("j", self.rotation.q.z)
@@ -76,6 +76,7 @@ class Transform3d:
         :return: A Transform3d in the center of transforms
         :rtype: Transform3d"""
         if(len(transforms) == 0): return Transform3d.zero()
+
         return_transform = Transform3d.zero()
         for i in transforms:
             return_transform += i
@@ -103,3 +104,11 @@ class Transform3d:
         for point in points:
             distances.append(point.field_distance(center))
         return stdev(distances)
+    def transform_by(self, transformation):
+        """
+        :param transformation: How to move the Transform3d
+        :return: Transform3d moved by given Transform3d
+        :rtype: Transform3d"""
+        new_translation = self.translation + transformation.translation.rotate_by(self.rotation)
+        new_rotation = Rotation3d(self.rotation.q * transformation.rotation.q)
+        return Transform3d(new_translation, new_rotation)
