@@ -126,7 +126,7 @@ class Detector(ABC):
         transforms = list(map(lambda tag : tag.robot_position, tags))
         position = Transform3d.average(transforms)
         self.lastKnownPosition = position
-        return transforms, position
+        return tags, transforms, position
     def get_world_pos_with_deviation(self, img: ArrayLike):
         """Used to get real world position from apriltags on the feild.
         :return: The field position of the bot

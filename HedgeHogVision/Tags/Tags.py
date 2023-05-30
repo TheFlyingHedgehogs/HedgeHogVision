@@ -12,10 +12,11 @@ class KnownTag:
     """Contains the position and rotation of the tag on the field"""
 
     @staticmethod
-    def from_inches(x_inches: float, z_inches: float, y_inches: float, rotation_degrees: float):
-        return KnownTag(x_inches * 0.0254, y_inches * 0.0254, z_inches * 0.0254, rotation_degrees)
+    def from_inches(id, x_inches: float, z_inches: float, y_inches: float, rotation_degrees: float):
+        return KnownTag(id, x_inches * 0.0254, y_inches * 0.0254, z_inches * 0.0254, rotation_degrees)
 
-    def __init__(self, x: float, y: float, z: float, rotation_degrees: float, tag_witdth: float = 0.1524):
+    def __init__(self, id, x: float, y: float, z: float, rotation_degrees: float, tag_witdth: float = 0.1524):
+        self.id = id
         self.x: float = x
         """X position of the tag relative to a corner of the field in meters"""
         self.y: float = y
@@ -44,7 +45,7 @@ class KnownTag:
 
 class MegaTag(KnownTag):
     def __init__(self, x: float, y: float, z: float, rotation_degrees: float, tag_witdth: float):
-        KnownTag.__init__(self, x, y, z, rotation_degrees)
+        KnownTag.__init__(self, 99, x, y, z, rotation_degrees)
 
 
 class FoundTag:
@@ -74,9 +75,11 @@ class FoundTag:
         """Rotation matrix of the apriltag from the matrix"""
         self.tag_transform: Transform3d = Transform3d(translation3d, rotation3d)
         self.robot_position = self.__get_robot_location()
-        self.first_guess = numpy.matmul(rotation, translation)
+        #self.first_guess = numpy.matmul(rotation, translation)
     def __str__(self):
         return f"Tag: {self.tag_transform}"
+    def info(self):
+        print(f"Pos: {self.robot_position},  \nTransform: {self.tag_transform}, \nID: {self.id}")
 
 """field = (
     KnownTag.from_inches(0.0, 0.0, 0.0, 180),           # 0
@@ -91,14 +94,14 @@ class FoundTag:
 )"""
 field = (
     None,           # 0
-    KnownTag.from_inches(42.19, 610.77, 18.22, 0),    # 1
-    KnownTag.from_inches(108.19, 610.77, 18.22, 0),   # 2
-    KnownTag.from_inches(147.19, 610.77, 18.22, 0),   # 3
-    KnownTag.from_inches(265.74, 636.96, 27.38, 0),   # 4
-    KnownTag.from_inches(265.74,  14.25, 27.38, 180),     # 5
-    KnownTag.from_inches(147.19,  40.45, 18.22, 180),     # 6
-    KnownTag.from_inches(108.19,  40.45, 18.22, 180),     # 7
-    KnownTag.from_inches(42.19,  40.45, 18.22, 180)       # 8
+    KnownTag.from_inches(1, 42.19, 610.77, 18.22, 0),    # 1
+    KnownTag.from_inches(2, 108.19, 610.77, 18.22, 0),   # 2
+    KnownTag.from_inches(3, 147.19, 610.77, 18.22, 0),   # 3
+    KnownTag.from_inches(4, 265.74, 636.96, 27.38, 0),   # 4
+    KnownTag.from_inches(5, 265.74,  14.25, 27.38, 180),     # 5
+    KnownTag.from_inches(6, 147.19,  40.45, 18.22, 180),     # 6
+    KnownTag.from_inches(7, 108.19,  40.45, 18.22, 180),     # 7
+    KnownTag.from_inches(8, 42.19,  40.45, 18.22, 180)       # 8
 )
 """field = (
     None,

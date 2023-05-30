@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
-from HedgeHogVision.Camera.Calibration import Calibration
-from HedgeHogVision.Tags.Tags import FoundTag, MegaTag
+from ..Camera.Calibration import Calibration
+from ..Tags.Tags import FoundTag, MegaTag
 from multiprocessing import Pool
-from HedgeHogVision.Detector.Detector import Detector
-from HedgeHogVision.Detector.Utils import LinePair
+from .Detector import Detector
+from .Utils import LinePair
 import math
 def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[FoundTag]:
     line1 = arg[0]
@@ -12,36 +12,39 @@ def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[Fo
     calibration = arg[2]
     height = line1.real_line.top.y - line1.real_line.bot.y
     width = line2.real_line.bot.x - line1.real_line.bot.x
-    if(line1.parent.z != line2.parent.z): return
+    #print(line1.real_line.bot.x)
+    if line1.parent.z != line2.parent.z: return
     rotation = line1.parent.rotation
     z1 = 0.0
     z2 = 0.0
-    arr = np.array([
+    objectPoints = np.array([
         [-width/2, height/2, z1],
         [width/2, height/2, z2],
         [width/2, -height/2, z2],
         [-width/2, -height/2, z1],
     ], dtype=np.float64)
+    imagePoints = np.array([
+        line1.image_line.top.arr2d,
+        line2.image_line.top.arr2d,
+        line2.image_line.bot.arr2d,
+        line1.image_line.bot.arr2d
+    ],
+        dtype=np.float64)
     success, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(
-        arr,
-        np.array([
-            line1.image_line.top.arr2d,
-            line2.image_line.top.arr2d,
-            line2.image_line.bot.arr2d,
-            line1.image_line.bot.arr2d
-        ],
-            dtype=np.float64),
+        objectPoints,
+        imagePoints,
         calibration.mtx,
         calibration.dist,
         flags=cv2.SOLVEPNP_IPPE)
     if not success: return
-    tag_x = (line1.real_line.top.x + line2.real_line.top.x)/2
+    tag_x = (line2.real_line.top.x + line1.real_line.top.x)/2
+    print(tag_x)
     tag_y = (line1.real_line.top.y + line1.real_line.bot.y)/2
     known_tag = MegaTag(tag_x, tag_y, (line1.parent.z + line2.parent.z)/2, math.degrees(rotation), width)
     to_append = []
     for (r, t) in zip(rotation_vectors,translation_vectors):
         rotation_matrix = cv2.Rodrigues(r)[0]
-        found_tag = FoundTag(known_tag, t, rotation_matrix,99)
+        found_tag = FoundTag(known_tag, t, rotation_matrix, f"T1: {line1.parent.id}, T2: {line2.parent.id}")
         to_append.append(found_tag)
     return to_append
 
