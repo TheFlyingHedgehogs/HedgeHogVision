@@ -20,7 +20,7 @@ def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[Fo
     if(width == 0): return
     if(line1.parent.z != line2.parent.z): return
     success, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(
-        np.array([
+        np.array([lambda pl : pl[0])
             [-width/2, height/2, 0.0],
             [width/2, height/2, 0.0],
             [width/2, -height/2, 0.0],

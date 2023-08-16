@@ -3,7 +3,7 @@ import numpy as np
 import pupil_apriltags
 from numpy.typing import ArrayLike
 from HedgeHogVision.Camera.Calibration import Calibration
-from HedgeHogVision.Tags.Tags import FoundTag, KnownTag
+from HedgeHogVision.Tags.Tags import FoundTag, KnownTag, Field
 from HedgeHogVision.math_stuff.math_stuff import Transform3d
 from HedgeHogVision.math_stuff.rotation3d import Rotation3d
 from HedgeHogVision.math_stuff.translation3d import Translation3d
@@ -20,7 +20,7 @@ p    r
 
 class Detector(ABC):
     """Used to find Apriltags in an image and return a position on the field (ABSTRACT CLASS, DO NOT INSTANTIATE)"""
-    def __init__(self, calibration: Calibration, field: list[KnownTag]):
+    def __init__(self, calibration: Calibration, field: Field):
         self.lastKnownPosition: Transform3d = Transform3d.zero()
         self.roborioPosition: Translation3d = None
         self.time_since_last_update = 0
@@ -28,7 +28,7 @@ class Detector(ABC):
         self.calibration = calibration
         self.detector = pupil_apriltags.Detector(families="tag16h5", nthreads=4)  # TODO test thread count
         self.field = field
-
+        self.solveType = cv2.SOLVEPNP_ITERATIVE
         """tag_half = tag_width_m / 2
         self.tag_half = tag_half
         self.object_points = np.array([
@@ -49,7 +49,7 @@ class Detector(ABC):
         """
         gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         found = self.detector.detect(gray)
-        firstFilter = list(filter(lambda item: not (item.hamming > 0 or item.decision_margin < 0.7 or item.tag_id >= len(self.field)), found))
+        firstFilter = list(filter(lambda item: not (item.hamming > 0 or item.decision_margin < 0.7), found))
         return list(filter(lambda item : self.field[item.tag_id] is not None, firstFilter))
     def __get_cluster(self, startPair: list[FoundTag,FoundTag], pairList: list[list[FoundTag,FoundTag]]) -> tuple[list[FoundTag], float]:
         first_tag_pos = startPair[0].robot_position
@@ -88,6 +88,8 @@ class Detector(ABC):
                 return [tags[0][tags[0][0].robot_position.translation.y < 0]]
             return [tags[0][self.lastKnownPosition.field_distance(tags[0][0].robot_position) >
                             self.lastKnownPosition.field_distance(tags[0][1].robot_position)]]
+        if(len(tags[0]) == 1):
+            return list(map(lambda i : i[0], tags))
         firstSolve, firstError   = self.__get_cluster(tags[0], tags[1:])
         secondSolve, secondError = self.__get_cluster(tags[-1],tags[:-1])
 
