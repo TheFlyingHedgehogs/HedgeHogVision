@@ -6,7 +6,7 @@ from multiprocessing import Pool
 from .Detector import Detector
 from .Utils import LinePair
 import math
-def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[FoundTag]:
+def process_tag(arg: list[LinePair, LinePair, Calibration, int, int, int]) -> list[FoundTag]:
     line1 = arg[0]
     line2 = arg[1]
     calibration = arg[2]
@@ -35,12 +35,15 @@ def process_tag(arg: list[LinePair, LinePair, Calibration, int, int]) -> list[Fo
         imagePoints,
         calibration.mtx,
         calibration.dist,
-        flags=cv2.SOLVEPNP_IPPE)
+        flags=cv2.SOLVEPNP_ITERATIVE)
     if not success: return
     tag_x = (line2.real_line.top.x + line1.real_line.top.x)/2
-    print(tag_x)
     tag_y = (line1.real_line.top.y + line1.real_line.bot.y)/2
     known_tag = MegaTag(tag_x, tag_y, (line1.parent.z + line2.parent.z)/2, math.degrees(rotation), width)
+    print(imagePoints)
+    tagWidth = line2.image_line.bot.x - line1.image_line.bot.x
+    tagHeight = line1.image_line.top.y - line1.image_line.bot.y
+    print(f"T1: {line1.parent.id}, T2: {line2.parent.id}: TW: {tagWidth}, TH: {tagHeight}")
     to_append = []
     for (r, t) in zip(rotation_vectors,translation_vectors):
         rotation_matrix = cv2.Rodrigues(r)[0]
@@ -77,7 +80,7 @@ class AdjecencyDetector(Detector):
         args = []
         for i in range(len(lines)-1):
             j = i + 1
-            args.append([lines[i], lines[j], self.calibration, i, j])
+            args.append([lines[i], lines[j], self.calibration, i, j, self.solveType])
         pool = Pool(4)
         detected = list(filter(lambda a : a != None, pool.map(process_tag, args)))
 

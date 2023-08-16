@@ -2,10 +2,10 @@ import HedgeHogVision.Detector.AdjecencyDetector
 from HedgeHogVision.math_stuff.math_stuff import Translation3d, Transform3d
 from HedgeHogVision.SmartDashboard.dashboard import VisionNetworkTable
 from numpy.typing import ArrayLike
-from HedgeHogVision.Tags.Tags import KnownTag
+from HedgeHogVision.Tags.Tags import Field
 from HedgeHogVision.Detector.AdjecencyDetector import AdjecencyDetector
 from HedgeHogVision.Detector.IndividualDetector import IndividualDetector
-
+import cv2
 
 from enum import Enum
 class DetectorType(Enum):
@@ -16,10 +16,11 @@ class DetectorType(Enum):
 class HedgeHogDetector:
     def __init__(self, detector: DetectorType,
                  calibration,
-                 field: list[KnownTag],
+                 field: Field,
                  camera = None,
                  cameraOffset: Transform3d = Transform3d.zero(),
-                 networkTable: VisionNetworkTable = None):
+                 networkTable: VisionNetworkTable = None,
+                 solveType = cv2.SOLVEPNP_ITERATIVE):
         """
         :param detector: The detector class of the method you want to use. The recommended detector is the AdjecencyDetector (Do not instantiate the class)
         :param calibration: The calibration of the camera you are using.
@@ -30,6 +31,7 @@ class HedgeHogDetector:
         self.camera = camera
         self.cameraOffset = cameraOffset
         self.networkTable = networkTable
+        self.detector.solveType = solveType
     def solveImage(self, image: ArrayLike):
         if(self.networkTable != None): self.detector.roborioPosition = self.networkTable.getRoborioPosition()
         return self.detector.get_world_pos_from_image(image).transform_by(self.cameraOffset.inverse())
